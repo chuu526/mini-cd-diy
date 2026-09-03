@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>迷你 CD 專輯 DIY (完美 RWD 跑位修復版)</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
+  <style>
+    body { font-family: sans-serif; display: flex; flex-direction: column; align-items: center; padding: 20px; background: #f0f2f5; margin: 0; }
+    /* 容器控制最大寬度，並保持居中 */
+    .canvas-wrapper { width: 100%; max-width: 780px; display: flex; justify-content: center; }
+    .canvas-container { border: 2px solid #ccc; background: #fff; box-shadow: 0 4px 12px rgba(0,0,0,0.15); border-radius: 8px; }
+    .controls { margin-top: 15px; display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; width: 100%; max-width: 780px; }
+    .btn { padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-size: 15px; color: white; font-weight: bold; }
+    .btn-delete { background: #ff4d4f; }
+    .btn-toggle { background: #1890ff; }
+    .btn-export { background: #52c41a; }
+    .tip-box { margin-top: 12px; background: #fffbe6; border: 1px solid #ffe58f; padding: 10px 16px; border-radius: 6px; font-size: 13px; color: #d48800; width: 100%; max-width: 780px; box-sizing: border-box; }
+  </style>
+</head>
+<body>
+
+  <h2>迷你 CD 專輯 DIY</h2>
+  
+  <div class="canvas-wrapper">
+    <canvas id="diyCanvas" width="780" height="520"></canvas>
+  </div>
+  <input type="file" id="hiddenFileInput" accept="image/*" style="display:none;" onchange="handleFileSelect(event)">
+
+  <div class="controls">
+    <button class="btn btn-toggle" onclick="toggleBleedLines()">👁️ 開啟/隱藏裁切出血線</button>
+    <button class="btn btn-delete" onclick="clearSelectedZone()">清除選中照片</button>
+    <button class="btn btn-export" onclick="exportImage()">完成排版並下載 A6 印刷檔</button>
+  </div>
+
+  <div class="tip-box">
+    <b>✂️ 提示：</b> 點擊各個格子即可上傳照片；點擊已上傳的照片可調整位置與大小。
+  </div>
+
+  <script>
+    const CANVAS_ORIGINAL_WIDTH = 780;
+    const CANVAS_ORIGINAL_HEIGHT = 520;
+
+    // 初始化畫布
+    const canvas = new fabric.Canvas('diyCanvas', {
+      selection: false,             
+      preserveObjectStacking: true,  
+      perPixelTargetFind: true,      
+      targetFindTolerance: 4
+    });
+    
+    let currentTargetZone = null;
+    let showBleed = true;
+    const zoneGroups = [];
+
+    // 精確座標配置
+    const zones = [
+      { id: '1.左上正方形', x: 20,  top: 20, w: 235, h: 220, type: 'rect' },
+      { id: '2.右上正方形', x: 255, top: 20, w: 235, h: 220, type: 'rect' },
+      { id: '3.CD光碟圓形', x: 510, top: 20, w: 220, h: 220, type: 'circle' },
+      
+      { id: '4.左大封面',   x: 20,  top: 260, w: 220, h: 220, type: 'rect' },
+      { id: '5.中間書背1',  x: 240, top: 260, w: 15,  h: 220, type: 'rect', isSpine: true, labelName: '書背1' },
+      { id: '6.中間書背2',  x: 255, top: 260, w: 15,  h: 220, type: 'rect', isSpine: true, labelName: '書背2' },
+      { id: '7.右大內頁',   x: 270, top: 260, w: 220, h: 220, type: 'rect' }
+    ];
+
+    const bottomFoldOuter = { x: 20, top: 260, w: 470, h: 220 };
+
+    // 繪製下方底色背景
+    const bottomBg = new fabric.Rect({
+      left: bottomFoldOuter.x, top: bottomFoldOuter.top,
+      width: bottomFoldOuter.w, height: bottomFoldOuter.h,
+      fill: '#f9f9f9', stroke: '#d9d9d9', strokeWidth: 1,
+      selectable: false, evented: false
+    });
+    canvas.add(bottomBg);
+
+    // 繪製書背摺痕輔助線
+    const spineFoldLines = [240, 255, 270];
+    spineFoldLines.forEach(xPos => {
+      const line = new fabric.Line([xPos, 260, xPos, 480], {
+        stroke: '#e0e0e0', strokeWidth: 1, strokeDashArray: [2, 2],
+        selectable: false, evented: false
+      });
+      canvas.add(line);
+    });
+
+    // 初始化上傳點擊區域
+    zones.forEach((z, index) => {
+      let maskShape;
+      
+      if (z.type === 'circle') {
+        maskShape = new fabric.Circle({
+          radius: z.w / 2, left: z.x, top: z.top,
+          fill: '#f9f9f9', stroke: '#d9d9d9', strokeWidth: 1, selectable: false
+        });
+      } else if (index < 2) { 
+        maskShape = new fabric.Rect({
+          left: z.x, top: z.top, width: z.w, height: z.h,
+          fill: '#f9f9f9', stroke: '#d9d9d9', strokeWidth: 1, selectable: false
+        });
+      } else { 
+        maskShape = new fabric.Rect({
+          left: z.x, top: z.top, width: z.w, height: z.h,
+          fill: 'transparent', stroke: 'transparent', strokeWidth: 0, selectable: false
+        });
+      }
+
+      let labelText = '+ 點擊上傳';
+      let fontSize = 12;
+      let fontColor = '#bfbfbf';
+
+      if (z.isSpine) {
+        labelText = z.labelName;
+        fontSize = 10;
+        fontColor = '#a0a0a0';
+      }
+
+      const label = new fabric.Text(labelText, {
+        left: z.x + z.w/2, top: z.top + z.h/2,
+        originX: 'center', originY: 'center',
+        fontSize: fontSize, fill: fontColor, selectable: false
+      });
+
+      const group = new fabric.Group([maskShape, label], { 
+        left: z.x, top: z.top, 
+        selectable: false, 
+        hoverCursor: 'pointer' 
+      });
+      group.zoneData = z;
+      zoneGroups.push(group);
+      canvas.add(group);
+    });
+
+    // 繪製出血線 Overlay
+    function generateBleedOverlay() {
+      const tempCanvas = document.createElement('canvas');
+      tempCanvas.width = CANVAS_ORIGINAL_WIDTH;
+      tempCanvas.height = CANVAS_ORIGINAL_HEIGHT;
+      const ctx = tempCanvas.getContext('2d');
+
+      ctx.strokeStyle = '#ff4d4f';
+      ctx.lineWidth = 1.5;
+      ctx.setLineDash([4, 4]);
+
+      const margin = 5;
+
+      for (let i = 0; i < 3; i++) {
+        const z = zones[i];
+        if (z.type === 'circle') {
+          ctx.beginPath();
+          ctx.arc(z.x + z.w/2, z.top + z.h/2, z.w/2 - margin, 0, Math.PI * 2);
+          ctx.stroke();
+        } else {
+          ctx.strokeRect(z.x + margin, z.top + margin, z.w - margin*2, z.h - margin*2);
+        }
+      }
+
+      ctx.strokeRect(
+        bottomFoldOuter.x + margin, 
+        bottomFoldOuter.top + margin, 
+        bottomFoldOuter.w - margin*2, 
+        bottomFoldOuter.h - margin*2
+      );
+
+      fabric.Image.fromURL(tempCanvas.toDataURL(), function(img) {
+        img.set({ left: 0, top: 0, selectable: false, evented: false });
+        canvas.setOverlayImage(img, canvas.renderAll.bind(canvas));
+      });
+    }
+
+    generateBleedOverlay();
+
+    function toggleBleedLines() {
+      showBleed = !showBleed;
+      if (showBleed) {
+        generateBleedOverlay();
+      } else {
+        canvas.setOverlayImage(null, canvas.renderAll.bind(canvas));
+      }
+    }
+
+    // 🌟 正確的 Fabric.js 響應式自動縮放邏輯
+    function resizeCanvas() {
+      const wrapper = document.querySelector('.canvas-wrapper');
+      const containerWidth = wrapper.clientWidth - 20; // 邊距緩衝
+      
+      let scale = containerWidth / CANVAS_ORIGINAL_WIDTH;
+      if (scale > 1) scale = 1; // 電腦版放大時維持 1:1，不超過原尺寸
+
+      canvas.setZoom(scale);
+      canvas.setDimensions({
+        width: CANVAS_ORIGINAL_WIDTH * scale,
+        height: CANVAS_ORIGINAL_HEIGHT * scale
+      });
+    }
+
+    // 監聽視窗變形事件
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas(); // 初始化調用
+
+    // 點擊事件管理
+    canvas.on('mouse:down', function(options) {
+      if (options.target && options.target.zoneData) {
+        currentTargetZone = options.target.zoneData;
+        document.getElementById('hiddenFileInput').click();
+      }
+    });
+
+    // 圖片上傳邏輯
+    function handleFileSelect(e) {
+      const file = e.target.files[0];
+      if (!file || !currentTargetZone) return;
+
+      const reader = new FileReader();
+      reader.onload = function(f) {
+        fabric.Image.fromURL(f.target.result, function(img) {
+          const z = currentTargetZone;
+
+          let clipPath = z.type === 'circle'
+            ? new fabric.Circle({ radius: z.w / 2, left: z.x, top: z.top, absolutePositioned: true })
+            : new fabric.Rect({ left: z.x, top: z.top, width: z.w, height: z.h, absolutePositioned: true });
+
+          const scale = Math.max(z.w / img.width, z.h / img.height);
+          
+          img.set({
+            left: z.x + (z.w - img.width * scale) / 2,
+            top: z.top + (z.h - img.height * scale) / 2, 
+            scaleX: scale, 
+            scaleY: scale,
+            clipPath: clipPath, 
+            cornerColor: '#1890ff', 
+            cornerSize: 8, 
+            transparentCorners: false,
+            isUserImage: true,
+            perPixelTargetFind: true
+          });
+
+          if (z.currentImg) canvas.remove(z.currentImg);
+          z.currentImg = img;
+          
+          canvas.add(img);
+          canvas.setActiveObject(img);
+          canvas.renderAll();
+        });
+      };
+      reader.readAsDataURL(file);
+      e.target.value = '';
+    }
+
+    function clearSelectedZone() {
+      const activeObj = canvas.getActiveObject();
+      if (activeObj) {
+        zones.forEach(z => {
+          if (z.currentImg === activeObj) {
+            canvas.remove(activeObj);
+            z.currentImg = null;
+          }
+        });
+        canvas.discardActiveObject();
+        canvas.requestRenderAll();
+      }
+    }
+
+    // 下載匯出檔 (還原 100% 原始尺寸高畫質輸出)
+    function exportImage() {
+      // 匯出前先恢復原本 1:1 縮放比例
+      const currentZoom = canvas.getZoom();
+      canvas.setZoom(1);
+      canvas.setDimensions({ width: CANVAS_ORIGINAL_WIDTH, height: CANVAS_ORIGINAL_HEIGHT });
+
+      canvas.setOverlayImage(null, function() {
+        canvas.discardActiveObject();
+        canvas.renderAll();
+
+        const dataURL = canvas.toDataURL({ format: 'png', quality: 1, multiplier: 2 });
+        
+        // 匯出完成後還原當前縮放與出血線
+        if (showBleed) generateBleedOverlay();
+        resizeCanvas();
+
+        const link = document.createElement('a');
+        link.download = 'A6-CD-Album-Print.png';
+        link.href = dataURL;
+        link.click();
+      });
+    }
+  </script>
+</body>
+</html>
