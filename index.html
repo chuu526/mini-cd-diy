@@ -192,7 +192,7 @@
       <b>✂️ 操作說明：</b> 
       <ul>
         <li>點擊空白格子自由上傳、移動、縮放與旋轉您的照片。</li>
-        <li>點擊結帳後需輸入店員專用密碼解鎖解鎖畫面！</li>
+        <li>點擊結帳後需輸入店員專用密碼（880526）解鎖結帳畫面！</li>
       </ul>
     </div>
   </div>
@@ -203,7 +203,7 @@
       <h3>🔐 店員權限驗證</h3>
       <p>請輸入店員解鎖密碼以解鎖結帳畫面：</p>
       
-      <input type="password" id="staffPassword" class="password-input" placeholder="请输入密码" maxlength="10">
+      <input type="password" id="staffPassword" class="password-input" placeholder="請輸入密碼" maxlength="10">
       <div class="error-msg" id="errorMsg">❌ 密碼錯誤，請重新輸入！</div>
 
       <button class="btn-modal-action" onclick="verifyPassword()">確認解鎖</button>
@@ -560,7 +560,6 @@
     function toggleBleedLines() { showBleed = !showBleed; render(); }
     function clearSelectedZone() { if (selectedZoneIndex !== -1) { baseZones[selectedZoneIndex].img = null; render(); } }
 
-    // 密碼驗證邏輯
     function openPasswordModal() {
       document.getElementById('staffPassword').value = '';
       document.getElementById('errorMsg').style.display = 'none';
