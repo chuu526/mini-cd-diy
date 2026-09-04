@@ -179,7 +179,6 @@
     <div class="canvas-wrapper">
       <canvas id="diyCanvas"></canvas>
     </div>
-    <input type="file" id="hiddenFileInput" accept="image/*" style="display:none;" onchange="handleFileSelect(event)">
 
     <div class="controls">
       <button class="btn btn-toggle" onclick="toggleBleedLines()">👁️ 開啟/隱藏出血線</button>
@@ -250,7 +249,6 @@
     }
 
     function render() {
-      // 這裡改為 false，禁止手機瀏覽器自動做模糊平滑處理，保留圖片最高銳利度
       ctx.imageSmoothingEnabled = false;
 
       ctx.clearRect(0, 0, DESIGN_WIDTH, DESIGN_HEIGHT);
@@ -468,7 +466,7 @@
       if (hitIndex !== -1) {
         selectedZoneIndex = hitIndex;
         if (!baseZones[hitIndex].img) {
-          document.getElementById('hiddenFileInput').click();
+          triggerUpload(); // 改用動態建立上傳按鈕，手機點擊才不會失效
         } else {
           activeMode = 'move'; startX = x; startY = y;
         }
@@ -476,6 +474,30 @@
         selectedZoneIndex = -1;
       }
       render();
+    }
+
+    // 專門為手機設計的動態上傳觸發器，確保點擊必開相簿
+    function triggerUpload() {
+      const fileInput = document.createElement('input');
+      fileInput.type = 'file';
+      fileInput.accept = 'image/*';
+      fileInput.onchange = function(e) {
+        const file = e.target.files[0];
+        if (!file || selectedZoneIndex === -1) return;
+        const reader = new FileReader();
+        reader.onload = function(event) {
+          const img = new Image();
+          img.onload = function() {
+            const z = baseZones[selectedZoneIndex];
+            z.img = img;
+            z.imgData = { offsetX: 0, offsetY: 0, scale: Math.max(z.w / img.width, z.h / img.height), angle: 0 };
+            render();
+          };
+          img.src = event.target.result;
+        };
+        reader.readAsDataURL(file);
+      };
+      fileInput.click();
     }
 
     function handleMove(e) {
@@ -535,24 +557,6 @@
         render();
       }
     });
-
-    function handleFileSelect(e) {
-      const file = e.target.files[0];
-      if (!file || selectedZoneIndex === -1) return;
-      const reader = new FileReader();
-      reader.onload = function(event) {
-        const img = new Image();
-        img.onload = function() {
-          const z = baseZones[selectedZoneIndex];
-          z.img = img;
-          z.imgData = { offsetX: 0, offsetY: 0, scale: Math.max(z.w / img.width, z.h / img.height), angle: 0 };
-          render();
-        };
-        img.src = event.target.result;
-      };
-      reader.readAsDataURL(file);
-      e.target.value = '';
-    }
 
     function toggleBleedLines() { showBleed = !showBleed; render(); }
     function clearSelectedZone() { if (selectedZoneIndex !== -1) { baseZones[selectedZoneIndex].img = null; render(); } }
