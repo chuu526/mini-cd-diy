@@ -207,7 +207,7 @@
     let showBleed = true;
     let selectedZoneIndex = -1;
 
-    // 將內部區塊適度往上移，讓底部留白增加
+    // 上下完美對稱留白的格子座標設定
     const zones = [
       { id: '1.封面外', x: 72, top: 45, w: 403, h: 428, type: 'rect', labelMain: '封面外', labelSub: '+ 點擊上傳', img: null },
       { id: '2.封面內', x: 475, top: 45, w: 403, h: 428, type: 'rect', labelMain: '封面內', labelSub: '+ 點擊上傳', img: null },
@@ -219,6 +219,10 @@
     ];
 
     function render() {
+      // 💡 開啟高品質圖片平滑演算法，防止縮放失真與模糊
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
+
       ctx.fillStyle = '#FFFFFF';
       ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
@@ -299,7 +303,7 @@
         }
       });
 
-      // 外框同步跟著向上位移
+      // 外框
       ctx.strokeStyle = '#333333';
       ctx.lineWidth = 2.7;
       ctx.strokeRect(72, 45, 806, 428);
