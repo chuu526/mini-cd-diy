@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>迷你 CD 專輯 DIY - 店員密碼鎖版</title>
+  <title>迷你 CD 專輯 DIY</title>
 
   <style>
     body { 
@@ -12,7 +12,7 @@
       flex-direction: column; 
       align-items: center; 
       padding: 15px; 
-      background: #FFFAF2; 
+      background: #FFFAF0; 
       margin: 0; 
       box-sizing: border-box;
     }
@@ -27,6 +27,7 @@
 
     .header-area {
       width: 100%;
+      max-width: 850px;
       position: relative;
       display: flex;
       justify-content: center;
@@ -44,11 +45,33 @@
       height: auto;
     }
 
-    h2 { 
-      margin: 0; 
-      font-size: 22px; 
-      color: #4a3b32; 
+    .top-right-history {
+      position: absolute;
+      right: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      display: flex;
+      gap: 6px;
     }
+
+    .btn-history-icon {
+      width: 38px;
+      height: 38px;
+      background: #F9E9CD;
+      border: 1px solid #D4C3B3;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 18px;
+      color: #5c4033;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-weight: bold;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+    .btn-history-icon:hover { background: #f2dec0; }
+
+    h2 { margin: 0; font-size: 22px; color: #4a3b32; }
 
     .canvas-wrapper { 
       width: 100%; 
@@ -88,21 +111,22 @@
       font-size: 14px; 
       font-weight: bold; 
       flex: 1; 
-      min-width: 140px; 
+      min-width: 130px; 
       text-align: center; 
+      border: 1px solid #D4C3B3;
     }
     
-    .btn-toggle { background: #b89b88; color: #ffffff; } 
-    .btn-delete { background: #dfcca6; color: #5c4033; } 
-    .btn-checkout { background: #9E7B66; color: #ffffff; } 
+    .btn-toggle { background: #b89b88; color: #ffffff; border-color: #a48774; } 
+    .btn-delete { background: #F9E9CD; color: #5c4033; } 
+    .btn-delete:hover { background: #f2dec0; }
+    .btn-checkout { background: #9E7B66; color: #ffffff; border-color: #8b6a55; } 
 
-    /* 底色控制區樣式 */
     .color-picker-bar {
       display: flex;
       align-items: center;
       gap: 10px;
-      background: #fff5eb;
-      border: 1px solid #e8d5c4;
+      background: #FFF8D7;
+      border: 1px solid #ffe58f;
       padding: 10px 16px;
       border-radius: 6px;
       width: 100%;
@@ -110,12 +134,12 @@
       box-sizing: border-box;
       margin-bottom: 12px;
       font-size: 14px;
-      color: #4a3b32;
+      color: #d48800;
       font-weight: bold;
     }
 
     .color-picker-bar input[type="color"] {
-      border: none;
+      border: 1px solid #ffe58f;
       width: 35px;
       height: 35px;
       border-radius: 4px;
@@ -123,21 +147,18 @@
       background: none;
     }
 
-    .color-presets {
-      display: flex;
-      gap: 6px;
-    }
+    .color-presets { display: flex; gap: 6px; }
 
     .preset-btn {
       padding: 5px 10px;
       font-size: 12px;
-      border: 1px solid #d4c3b3;
+      border: 1px solid #ffe58f;
       border-radius: 4px;
       cursor: pointer;
       background: #fff;
-      color: #5c4033;
+      color: #d48800;
     }
-    .preset-btn:hover { background: #f0e6dc; }
+    .preset-btn:hover { background: #fff1b8; }
 
     .tip-box { 
       background: #fffbe6; 
@@ -188,26 +209,13 @@
     .password-input:focus { border-color: #9E7B66; }
     .error-msg { color: #e53935; font-size: 13px; margin-bottom: 10px; display: none; }
 
-    .qr-placeholder {
-      width: 160px;
-      height: 160px;
-      background: #f0f0f0;
-      border: 2px dashed #ccc;
-      margin: 15px auto;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #888;
-      font-size: 13px;
-      border-radius: 8px;
-    }
-
     .btn-modal-action { background: #9E7B66; color: white; padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 5px; }
     .btn-modal-cancel { background: #dfcca6; color: #5c4033; padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 8px; }
 
     @media (max-width: 600px) {
-      .header-area { flex-direction: column; gap: 10px; }
-      .top-left-logo { position: static; transform: none; }
+      .header-area { flex-direction: column; gap: 10px; min-height: auto; padding-top: 45px; }
+      .top-left-logo { position: absolute; left: 0; top: 0; transform: none; }
+      .top-right-history { position: absolute; right: 0; top: 0; transform: none; }
       .color-picker-bar { flex-direction: column; align-items: flex-start; }
     }
   </style>
@@ -218,6 +226,10 @@
     <div class="header-area">
       <img src="The創 LOGO.png" alt="The創 LOGO" class="top-left-logo">
       <h2>迷你 CD 專輯 DIY</h2>
+      <div class="top-right-history">
+        <button class="btn-history-icon" onclick="undoAction()" title="返回上一步">↶</button>
+        <button class="btn-history-icon" onclick="redoAction()" title="重做下一步">↷</button>
+      </div>
     </div>
 
     <div class="canvas-wrapper">
@@ -225,8 +237,8 @@
     </div>
 
     <div class="color-picker-bar">
-      <span>🎨 套圖格子底色：</span>
-      <input type="color" id="zoneBgColorPicker" value="#FFFFFF" onchange="changeZoneBgColor(this.value)">
+      <span id="colorBarLabel">🎨 請點選上方格子以設定個別底色：</span>
+      <input type="color" id="zoneBgColorPicker" value="#FFFFFF" onchange="changeSelectedZoneBgColor(this.value)">
       <div class="color-presets">
         <button class="preset-btn" onclick="setPresetColor('#FFFFFF')">純白</button>
         <button class="preset-btn" onclick="setPresetColor('#FFFAF2')">米色</button>
@@ -236,7 +248,7 @@
     </div>
 
     <div class="controls">
-      <button class="btn btn-toggle" onclick="toggleBleedLines()">👁️ 開啟/隱藏出血線</button>
+      <button class="btn btn-toggle" id="toggleBtn" onclick="toggleBleedLines()">切換：預覽成品效果</button>
       <button class="btn btn-delete" onclick="clearSelectedZone()">清除選中照片</button>
       <button class="btn btn-checkout" onclick="openPasswordModal()">🎁 完成設計，前往櫃檯結帳</button>
     </div>
@@ -244,8 +256,8 @@
     <div class="tip-box">
       <b>✂️ 操作說明：</b> 
       <ul>
-        <li>點擊空白格子自由上傳、移動、縮放與旋轉您的照片。</li>
-        <li>製作完成後需交由店員解密下載圖片！</li>
+        <li>點擊任一格子可上傳照片，並直接在下方切換該格子的獨立底色。</li>
+        <li>點擊「切換：預覽成品效果」可隱藏出血線外側，直接預覽裁切後的真實成品！</li>
       </ul>
     </div>
   </div>
@@ -253,26 +265,13 @@
   <div class="modal-overlay" id="passwordModal">
     <div class="modal-content">
       <h3>🔐 店員權限驗證</h3>
-      <p>請輸入店員解鎖密碼以解鎖結帳畫面：</p>
+      <p>請輸入解鎖密碼以直接下載圖片：</p>
       
       <input type="password" id="staffPassword" class="password-input" placeholder="請輸入密碼" maxlength="10">
       <div class="error-msg" id="errorMsg">❌ 密碼錯誤，請重新輸入！</div>
 
-      <button class="btn-modal-action" onclick="verifyPassword()">確認解鎖</button>
+      <button class="btn-modal-action" onclick="verifyPassword()">確認並下載</button>
       <button class="btn-modal-cancel" onclick="closePasswordModal()">取消</button>
-    </div>
-  </div>
-
-  <div class="modal-overlay" id="checkoutModal">
-    <div class="modal-content">
-      <h3>🎉 驗證成功，排版大功告成！</h3>
-      <p>請將此畫面出示給櫃檯店員，店員將立刻為您列印輸出高畫質專輯！</p>
-      
-      <div class="qr-placeholder">
-        [ 請在此放入您的 LINE QR Code ]
-      </div>
-
-      <button class="btn-modal-action" onclick="closeCheckoutModal()">關閉返回</button>
     </div>
   </div>
 
@@ -286,19 +285,85 @@
     const ctx = canvas.getContext('2d');
     const globalFileInput = document.getElementById('globalFileInput');
 
-    let showBleed = true;
+    let previewFinished = false;
     let selectedZoneIndex = -1;
-    let currentZoneBgColor = '#FFFFFF'; // 預設套圖底色
 
-    const baseZones = [
-      { id: '1.封面外', x: 72, top: 45, w: 403, h: 428, type: 'rect', labelMain: '封面外', labelSub: '+ 點擊上傳', img: null },
-      { id: '2.封面內', x: 475, top: 45, w: 403, h: 428, type: 'rect', labelMain: '封面內', labelSub: '+ 點擊上傳', img: null },
-      { id: '3.CD光碟', x: 963, top: 65, w: 389, h: 389, type: 'cd', labelMain: 'CD 封面', labelSub: '+ 點擊上傳', img: null },
-      { id: '4.封底外(含折邊)', x: 72, top: 505, w: 518, h: 398, type: 'rect', labelMain: '封底外', labelSub: '(含左折邊) + 點擊上傳', foldLineX: 126, img: null },
-      { id: '5.書背1', x: 590, top: 505, w: 29, h: 398, type: 'rect', isSpine: true, labelSpine: '書背1', img: null },
-      { id: '6.書背2', x: 619, top: 505, w: 29, h: 398, type: 'rect', isSpine: true, labelSpine: '書背2', img: null },
-      { id: '7.封底內(含折邊)', x: 648, top: 505, w: 518, h: 398, type: 'rect', labelMain: '封底內', labelSub: '(含右折邊) + 點擊上傳', foldLineX: 1112, img: null }
+    let baseZones = [
+      { id: '1.封面外', x: 72, top: 45, w: 403, h: 428, type: 'rect', labelMain: '封面外', labelSub: '+ 點擊上傳', img: null, bgColor: '#FFFFFF', imgData: null },
+      { id: '2.封面內', x: 475, top: 45, w: 403, h: 428, type: 'rect', labelMain: '封面內', labelSub: '+ 點擊上傳', img: null, bgColor: '#FFFFFF', imgData: null },
+      { id: '3.CD光碟', x: 963, top: 65, w: 389, h: 389, type: 'cd', labelMain: 'CD 封面', labelSub: '+ 點擊上傳', img: null, bgColor: '#FFFFFF', imgData: null },
+      { id: '4.封底外(含折邊)', x: 72, top: 505, w: 518, h: 398, type: 'rect', labelMain: '封底外', labelSub: '(含左折邊) + 點擊上傳', foldLineX: 126, img: null, bgColor: '#FFFFFF', imgData: null },
+      { id: '5.書背1', x: 590, top: 505, w: 29, h: 398, type: 'rect', isSpine: true, labelSpine: '書背1', img: null, bgColor: '#FFFFFF', imgData: null },
+      { id: '6.書背2', x: 619, top: 505, w: 29, h: 398, type: 'rect', isSpine: true, labelSpine: '書背2', img: null, bgColor: '#FFFFFF', imgData: null },
+      { id: '7.封底內(含折邊)', x: 648, top: 505, w: 518, h: 398, type: 'rect', labelMain: '封底內', labelSub: '(含右折邊) + 點擊上傳', foldLineX: 1112, img: null, bgColor: '#FFFFFF', imgData: null }
     ];
+
+    let undoStack = [];
+    let redoStack = [];
+    const MAX_HISTORY = 20;
+
+    function saveState() {
+      const currentState = baseZones.map(z => ({
+        bgColor: z.bgColor,
+        imgSrc: z.img ? z.img.src : null,
+        imgData: z.imgData ? { ...z.imgData } : null
+      }));
+      undoStack.push(currentState);
+      if (undoStack.length > MAX_HISTORY) undoStack.shift();
+      redoStack = [];
+    }
+
+    function restoreState(state) {
+      state.forEach((savedZ, i) => {
+        baseZones[i].bgColor = savedZ.bgColor;
+        if (savedZ.imgSrc) {
+          if (baseZones[i].img && baseZones[i].img.src === savedZ.imgSrc) {
+            baseZones[i].imgData = { ...savedZ.imgData };
+          } else {
+            const img = new Image();
+            img.src = savedZ.imgSrc;
+            baseZones[i].img = img;
+            baseZones[i].imgData = { ...savedZ.imgData };
+          }
+        } else {
+          baseZones[i].img = null;
+          baseZones[i].imgData = null;
+        }
+      });
+      render();
+    }
+
+    function undoAction() {
+      if (undoStack.length === 0) return;
+      const currentState = baseZones.map(z => ({
+        bgColor: z.bgColor,
+        imgSrc: z.img ? z.img.src : null,
+        imgData: z.imgData ? { ...z.imgData } : null
+      }));
+      redoStack.push(currentState);
+      restoreState(undoStack.pop());
+    }
+
+    function redoAction() {
+      if (redoStack.length === 0) return;
+      const currentState = baseZones.map(z => ({
+        bgColor: z.bgColor,
+        imgSrc: z.img ? z.img.src : null,
+        imgData: z.imgData ? { ...z.imgData } : null
+      }));
+      undoStack.push(currentState);
+      restoreState(redoStack.pop());
+    }
+
+    window.addEventListener('keydown', (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
+        if (e.shiftKey) redoAction(); else undoAction();
+        e.preventDefault();
+      } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'y') {
+        redoAction();
+        e.preventDefault();
+      }
+    });
 
     function initCanvasSize() {
       const dpr = window.devicePixelRatio || 1;
@@ -307,17 +372,38 @@
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     }
 
-    function changeZoneBgColor(color) {
-      currentZoneBgColor = color;
-      document.getElementById('zoneBgColorPicker').value = color;
-      render();
+    function changeSelectedZoneBgColor(color) {
+      if (selectedZoneIndex !== -1) {
+        if (baseZones[selectedZoneIndex].bgColor !== color) {
+          saveState();
+          baseZones[selectedZoneIndex].bgColor = color;
+          render();
+        }
+      }
     }
 
     function setPresetColor(color) {
-      changeZoneBgColor(color);
+      if (selectedZoneIndex !== -1) {
+        document.getElementById('zoneBgColorPicker').value = color;
+        changeSelectedZoneBgColor(color);
+      }
     }
 
-    function render() {
+    function updateColorPickerUI() {
+      const label = document.getElementById('colorBarLabel');
+      const picker = document.getElementById('zoneBgColorPicker');
+      if (selectedZoneIndex !== -1) {
+        const z = baseZones[selectedZoneIndex];
+        label.innerHTML = `🎨 設定【${z.id.replace(/^\d+\./, '')}】格子底色：`;
+        picker.value = z.bgColor;
+        picker.disabled = false;
+      } else {
+        label.innerHTML = `🎨 請先點選上方格子以設定個別底色：`;
+        picker.disabled = true;
+      }
+    }
+
+    function render(isExporting = false) {
       ctx.imageSmoothingEnabled = true;
       ctx.imageSmoothingQuality = 'high';
 
@@ -338,11 +424,10 @@
         }
         ctx.clip();
 
-        // 使用使用者選擇的套圖底色
-        ctx.fillStyle = currentZoneBgColor;
+        ctx.fillStyle = z.bgColor;
         ctx.fill();
 
-        if (z.img) {
+        if (z.img && z.imgData) {
           ctx.save();
           const centerX = z.x + z.w/2 + (z.imgData.offsetX || 0);
           const centerY = z.top + z.h/2 + (z.imgData.offsetY || 0);
@@ -353,7 +438,7 @@
           
           ctx.drawImage(z.img, -z.img.width/2, -z.img.height/2);
           ctx.restore();
-        } else {
+        } else if (!isExporting) {
           ctx.fillStyle = z.isSpine ? '#8C7B6B' : '#5C4A3E';
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
@@ -375,8 +460,10 @@
         }
         ctx.restore();
 
-        ctx.strokeStyle = '#333333';
-        ctx.lineWidth = 2.2;
+        // 格子線與書背交界線：匯出時改為細白色實線
+        ctx.strokeStyle = isExporting ? '#FFFFFF' : '#333333';
+        ctx.lineWidth = isExporting ? 1.0 : 2.2;
+        
         ctx.beginPath();
         if (z.type === 'cd') {
           const centerX = z.x + z.w/2;
@@ -391,10 +478,11 @@
           ctx.stroke();
         }
 
+        // 摺痕線：匯出時也改為細白色實線
         if (z.foldLineX) {
           ctx.save();
-          ctx.strokeStyle = '#666666';
-          ctx.lineWidth = 1.8;
+          ctx.strokeStyle = isExporting ? '#FFFFFF' : '#666666';
+          ctx.lineWidth = isExporting ? 1.0 : 1.8;
           ctx.beginPath();
           ctx.moveTo(z.foldLineX, z.top);
           ctx.lineTo(z.foldLineX, z.top + z.h);
@@ -403,16 +491,50 @@
         }
       });
 
-      ctx.strokeStyle = '#333333';
-      ctx.lineWidth = 2.7;
+      // 區塊外框：匯出時改為細白色實線
+      ctx.strokeStyle = isExporting ? '#FFFFFF' : '#333333';
+      ctx.lineWidth = isExporting ? 1.0 : 2.7;
       ctx.strokeRect(72, 45, 806, 428);
       ctx.strokeRect(72, 505, 1094, 398);
 
-      if (showBleed) {
+      // 🎯 出血線處理：如果正在匯出，將原本的紅色虛線保留並轉成「很細的白色實線」；平時則顯示紅虛線或預覽效果
+      if (isExporting) {
+        ctx.save();
+        ctx.strokeStyle = '#FFFFFF';
+        ctx.lineWidth = 1.0;
+        // 上方組合的出血裁切框
+        ctx.strokeRect(86, 59, 778, 400);
+        const cd = baseZones[2];
+        ctx.beginPath();
+        ctx.arc(cd.x + cd.w/2, cd.top + cd.h/2, 184, 0, Math.PI * 2);
+        ctx.stroke();
+        // 下方組合的出血裁切框
+        ctx.strokeRect(92, 521, 1054, 369);
+        ctx.restore();
+      } else if (previewFinished) {
+        ctx.save();
+        ctx.fillStyle = '#FFFFFF';
+        ctx.beginPath();
+        ctx.rect(0, 0, DESIGN_WIDTH, DESIGN_HEIGHT);
+        ctx.rect(86 + 778, 59, -778, 400);
+        const cd = baseZones[2];
+        ctx.arc(cd.x + cd.w/2, cd.top + cd.h/2, 184, 0, Math.PI * 2, true);
+        ctx.rect(92 + 1054, 521, -1054, 369);
+        ctx.fill('evenodd');
+
+        ctx.strokeStyle = '#888888';
+        ctx.lineWidth = 1.5;
+        ctx.strokeRect(86, 59, 778, 400);
+        ctx.beginPath();
+        ctx.arc(cd.x + cd.w/2, cd.top + cd.h/2, 184, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.strokeRect(92, 521, 1054, 369);
+        ctx.restore();
+      } else {
         ctx.save();
         ctx.strokeStyle = '#E53935'; 
         ctx.lineWidth = 2.7;
-        ctx.setLineDash([9, 9]);       
+        ctx.setLineDash([9, 9]);     
         ctx.strokeRect(86, 59, 778, 400);
         const cd = baseZones[2];
         ctx.beginPath();
@@ -422,9 +544,9 @@
         ctx.restore();
       }
 
-      if (selectedZoneIndex !== -1) {
+      if (!isExporting && selectedZoneIndex !== -1) {
         const z = baseZones[selectedZoneIndex];
-        if (z.img) {
+        if (z.img && z.imgData) {
           drawTransformControls(z);
         } else {
           ctx.strokeStyle = '#1890ff';
@@ -437,10 +559,12 @@
             ctx.strokeRect(z.x, z.top, z.w, z.h);
           }
         }
+        updateColorPickerUI();
       }
     }
 
     function drawTransformControls(z) {
+      if (!z.imgData) return;
       const centerX = z.x + z.w/2 + z.imgData.offsetX;
       const centerY = z.top + z.h/2 + z.imgData.offsetY;
       const w = z.img.width * z.imgData.scale;
@@ -514,16 +638,18 @@
       const { x, y } = getCanvasPos(e);
       const hitThreshold = ('ontouchstart' in window) ? 45 : 25;
 
-      if (selectedZoneIndex !== -1 && baseZones[selectedZoneIndex].img) {
+      if (selectedZoneIndex !== -1 && baseZones[selectedZoneIndex].img && baseZones[selectedZoneIndex].imgData) {
         const z = baseZones[selectedZoneIndex];
         const { globalHandles, rotHandle } = getTransformedHandleCoords(z);
 
         if (Math.hypot(x - rotHandle.x, y - rotHandle.y) <= hitThreshold) {
+          saveState();
           activeMode = 'rotate'; startX = x; startY = y; return;
         }
 
         for (let handle of globalHandles) {
           if (Math.hypot(x - handle.x, y - handle.y) <= hitThreshold) {
+            saveState();
             activeMode = 'scale'; startX = x; startY = y; initialScale = z.imgData.scale;
             const centerX = z.x + z.w/2 + z.imgData.offsetX;
             const centerY = z.top + z.h/2 + z.imgData.offsetY;
@@ -540,6 +666,7 @@
           globalFileInput.value = '';
           globalFileInput.click();
         } else {
+          saveState();
           activeMode = 'move'; startX = x; startY = y;
         }
       } else {
@@ -556,6 +683,7 @@
       reader.onload = function(event) {
         const img = new Image();
         img.onload = function() {
+          saveState();
           const z = baseZones[selectedZoneIndex];
           z.img = img;
           z.imgData = { 
@@ -572,7 +700,7 @@
     });
 
     function handleMove(e) {
-      if (selectedZoneIndex === -1 || !baseZones[selectedZoneIndex].img || !activeMode) return;
+      if (selectedZoneIndex === -1 || !baseZones[selectedZoneIndex].img || !baseZones[selectedZoneIndex].imgData || !activeMode) return;
       if (e.cancelable) e.preventDefault();
 
       const z = baseZones[selectedZoneIndex];
@@ -625,16 +753,30 @@
     }
 
     canvas.addEventListener('wheel', (e) => {
-      if (selectedZoneIndex !== -1 && baseZones[selectedZoneIndex].img) {
+      if (selectedZoneIndex !== -1 && baseZones[selectedZoneIndex].img && baseZones[selectedZoneIndex].imgData) {
         e.preventDefault();
+        saveState();
         const z = baseZones[selectedZoneIndex];
         z.imgData.scale = Math.min(Math.max(0.05, z.imgData.scale * (e.deltaY < 0 ? 1.05 : 0.95)), 5);
         render();
       }
     });
 
-    function toggleBleedLines() { showBleed = !showBleed; render(); }
-    function clearSelectedZone() { if (selectedZoneIndex !== -1) { baseZones[selectedZoneIndex].img = null; render(); } }
+    function toggleBleedLines() { 
+      previewFinished = !previewFinished; 
+      const btn = document.getElementById('toggleBtn');
+      btn.innerText = previewFinished ? '👁️ 切換：顯示出血線' : '👁️ 切換：預覽成品效果';
+      render(); 
+    }
+    
+    function clearSelectedZone() { 
+      if (selectedZoneIndex !== -1 && baseZones[selectedZoneIndex].img) {
+        saveState();
+        baseZones[selectedZoneIndex].img = null;
+        baseZones[selectedZoneIndex].imgData = null;
+        render(); 
+      } 
+    }
 
     function openPasswordModal() {
       document.getElementById('staffPassword').value = '';
@@ -650,14 +792,22 @@
       const inputVal = document.getElementById('staffPassword').value;
       if (inputVal === '880526') {
         closePasswordModal();
-        document.getElementById('checkoutModal').style.display = 'flex';
+        downloadFinalImage(); 
       } else {
         document.getElementById('errorMsg').style.display = 'block';
       }
     }
 
-    function closeCheckoutModal() {
-      document.getElementById('checkoutModal').style.display = 'none';
+    function downloadFinalImage() {
+      selectedZoneIndex = -1;
+      render(true); 
+
+      const link = document.createElement('a');
+      link.download = '迷你CD專輯排版.png';
+      link.href = canvas.toDataURL('image/png', 1.0);
+      link.click();
+
+      render(false); 
     }
 
     window.addEventListener('load', () => {
