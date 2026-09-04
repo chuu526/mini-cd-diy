@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>迷你 CD 專輯 DIY - 完美不變形高畫質版</title>
+  <title>迷你 CD 專輯 DIY - 店員密碼鎖版</title>
 
   <style>
     body { 
@@ -109,7 +109,7 @@
     }
     .tip-box ul { margin: 5px 0 0 18px; padding: 0; }
 
-    /* 結帳提示彈窗樣式 */
+    /* 通用彈窗樣式 */
     .modal-overlay {
       display: none;
       position: fixed;
@@ -130,6 +130,22 @@
     }
     .modal-content h3 { margin-top: 0; color: #4a3b32; font-size: 20px; }
     .modal-content p { font-size: 14px; color: #555; line-height: 1.5; }
+    
+    .password-input {
+      width: 100%;
+      padding: 12px;
+      font-size: 18px;
+      text-align: center;
+      letter-spacing: 3px;
+      border: 2px solid #D4C3B3;
+      border-radius: 6px;
+      box-sizing: border-box;
+      margin: 15px 0;
+      outline: none;
+    }
+    .password-input:focus { border-color: #9E7B66; }
+    .error-msg { color: #e53935; font-size: 13px; margin-bottom: 10px; display: none; }
+
     .qr-placeholder {
       width: 160px;
       height: 160px;
@@ -143,17 +159,13 @@
       font-size: 13px;
       border-radius: 8px;
     }
-    .btn-close-modal { background: #9E7B66; color: white; padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 10px; }
+
+    .btn-modal-action { background: #9E7B66; color: white; padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 5px; }
+    .btn-modal-cancel { background: #dfcca6; color: #5c4033; padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 8px; }
 
     @media (max-width: 600px) {
-      .header-area {
-        flex-direction: column;
-        gap: 10px;
-      }
-      .top-left-logo {
-        position: static;
-        transform: none;
-      }
+      .header-area { flex-direction: column; gap: 10px; }
+      .top-left-logo { position: static; transform: none; }
     }
   </style>
 </head>
@@ -173,34 +185,47 @@
     <div class="controls">
       <button class="btn btn-toggle" onclick="toggleBleedLines()">👁️ 開啟/隱藏出血線</button>
       <button class="btn btn-delete" onclick="clearSelectedZone()">清除選中照片</button>
-      <button class="btn btn-checkout" onclick="openCheckoutModal()">🎁 完成設計，前往櫃檯結帳</button>
+      <button class="btn btn-checkout" onclick="openPasswordModal()">🎁 完成設計，前往櫃檯結帳</button>
     </div>
 
     <div class="tip-box">
       <b>✂️ 操作說明：</b> 
       <ul>
         <li>點擊空白格子自由上傳、移動、縮放與旋轉您的照片。</li>
-        <li>版面已修復為<b>完美比例自適應</b>，電腦與手機皆不變形、清晰不模糊！</li>
+        <li>點擊結帳後需輸入店員專用密碼解鎖解鎖畫面！</li>
       </ul>
     </div>
   </div>
 
-  <!-- 櫃檯結帳提示視窗 -->
+  <!-- 步驟 1：輸入密碼彈窗 -->
+  <div class="modal-overlay" id="passwordModal">
+    <div class="modal-content">
+      <h3>🔐 店員權限驗證</h3>
+      <p>請輸入店員解鎖密碼以解鎖結帳畫面：</p>
+      
+      <input type="password" id="staffPassword" class="password-input" placeholder="请输入密码" maxlength="10">
+      <div class="error-msg" id="errorMsg">❌ 密碼錯誤，請重新輸入！</div>
+
+      <button class="btn-modal-action" onclick="verifyPassword()">確認解鎖</button>
+      <button class="btn-modal-cancel" onclick="closePasswordModal()">取消</button>
+    </div>
+  </div>
+
+  <!-- 步驟 2：解鎖後的櫃檯結帳成功提示視窗 -->
   <div class="modal-overlay" id="checkoutModal">
     <div class="modal-content">
-      <h3>🎉 排版大功告成！</h3>
+      <h3>🎉 驗證成功，排版大功告成！</h3>
       <p>請將此畫面出示給櫃檯店員，店員將立刻為您列印輸出高畫質專輯！</p>
       
       <div class="qr-placeholder">
         [ 請在此放入您的 LINE QR Code ]
       </div>
 
-      <button class="btn-close-modal" onclick="closeCheckoutModal()">我知道了，返回修改</button>
+      <button class="btn-modal-action" onclick="closeCheckoutModal()">關閉返回</button>
     </div>
   </div>
 
   <script>
-    // 固定設計稿邏輯尺寸比例 (寬 1440 : 高 960)
     const DESIGN_WIDTH = 1440;
     const DESIGN_HEIGHT = 960;
 
@@ -222,12 +247,8 @@
 
     function initCanvasSize() {
       const dpr = window.devicePixelRatio || 1;
-      
-      // 內部維持高畫質渲染解析度
       canvas.width = DESIGN_WIDTH * dpr;
       canvas.height = DESIGN_HEIGHT * dpr;
-
-      // 讓 Canvas 呈現等比例縮放，絕不變形
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     }
 
@@ -316,7 +337,6 @@
         }
       });
 
-      // 外框
       ctx.strokeStyle = '#333333';
       ctx.lineWidth = 2.7;
       ctx.strokeRect(72, 45, 806, 428);
@@ -540,8 +560,25 @@
     function toggleBleedLines() { showBleed = !showBleed; render(); }
     function clearSelectedZone() { if (selectedZoneIndex !== -1) { baseZones[selectedZoneIndex].img = null; render(); } }
 
-    function openCheckoutModal() {
-      document.getElementById('checkoutModal').style.display = 'flex';
+    // 密碼驗證邏輯
+    function openPasswordModal() {
+      document.getElementById('staffPassword').value = '';
+      document.getElementById('errorMsg').style.display = 'none';
+      document.getElementById('passwordModal').style.display = 'flex';
+    }
+
+    function closePasswordModal() {
+      document.getElementById('passwordModal').style.display = 'none';
+    }
+
+    function verifyPassword() {
+      const inputVal = document.getElementById('staffPassword').value;
+      if (inputVal === '880526') {
+        closePasswordModal();
+        document.getElementById('checkoutModal').style.display = 'flex';
+      } else {
+        document.getElementById('errorMsg').style.display = 'block';
+      }
     }
 
     function closeCheckoutModal() {
