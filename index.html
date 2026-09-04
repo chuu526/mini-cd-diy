@@ -109,7 +109,6 @@
     }
     .tip-box ul { margin: 5px 0 0 18px; padding: 0; }
 
-    /* 通用彈窗樣式 */
     .modal-overlay {
       display: none;
       position: fixed;
@@ -192,12 +191,11 @@
       <b>✂️ 操作說明：</b> 
       <ul>
         <li>點擊空白格子自由上傳、移動、縮放與旋轉您的照片。</li>
-        <li>點擊結帳後需交由店員解密下載圖片！</li>
+        <li>製作完成後需交由店員解密下載圖片！</li>
       </ul>
     </div>
   </div>
 
-  <!-- 步驟 1：輸入密碼彈窗 -->
   <div class="modal-overlay" id="passwordModal">
     <div class="modal-content">
       <h3>🔐 店員權限驗證</h3>
@@ -211,7 +209,6 @@
     </div>
   </div>
 
-  <!-- 步驟 2：解鎖後的櫃檯結帳成功提示視窗 -->
   <div class="modal-overlay" id="checkoutModal">
     <div class="modal-content">
       <h3>🎉 驗證成功，排版大功告成！</h3>
@@ -253,8 +250,8 @@
     }
 
     function render() {
-      ctx.imageSmoothingEnabled = true;
-      ctx.imageSmoothingQuality = 'high';
+      // 這裡改為 false，禁止手機瀏覽器自動做模糊平滑處理，保留圖片最高銳利度
+      ctx.imageSmoothingEnabled = false;
 
       ctx.clearRect(0, 0, DESIGN_WIDTH, DESIGN_HEIGHT);
       ctx.fillStyle = '#FFFFFF';
