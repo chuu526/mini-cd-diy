@@ -109,7 +109,7 @@
       margin-bottom: 15px;
       overflow: hidden; 
       position: relative;
-      touch-action: pan-x pan-y; 
+      touch-action: auto; /* 允許瀏覽器正常處理手勢與縮放 */
       border: 2px solid #D4C3B3; 
       background: #FFFFFF; 
       box-shadow: 0 4px 12px rgba(0,0,0,0.08); 
@@ -133,7 +133,6 @@
 
     .btn { 
       padding: 12px 18px; 
-      border: none; 
       border-radius: 6px; 
       cursor: pointer; 
       font-size: 14px; 
@@ -327,7 +326,7 @@
     const DESIGN_WIDTH = 1440;
     const DESIGN_HEIGHT = 960;
 
-    // 請在這裡填入你的 Make Webhook 網址 (例如 'https://hook.eu1.make.com/xxxxxx')
+    // 請在這裡填入你的 Make Webhook 網址
     const MAKE_WEBHOOK_URL = ''; 
 
     const canvas = document.getElementById('diyCanvas');
@@ -810,6 +809,7 @@
     }
 
     function handleCanvasInteraction(e) {
+      // 關鍵：如果偵測到雙指（或以上），直接中斷，不搶事件，讓手機做頁面縮放！
       if (e.touches && e.touches.length > 1) return;
 
       const { x, y } = getCanvasPos(e);
@@ -939,7 +939,7 @@
     });
 
     function handleMove(e) {
-      if (e.touches && e.touches.length > 1) return; // 讓雙指縮放交給手機預設處理
+      if (e.touches && e.touches.length > 1) return; // 雙指時直接交還給手機縮放
       if (!activeMode) return;
       if (e.cancelable) e.preventDefault();
 
@@ -1022,7 +1022,7 @@
     }
 
     function handleStart(e) {
-      if (e.touches && e.touches.length > 1) return;
+      if (e.touches && e.touches.length > 1) return; // 雙指直接放行
       handleCanvasInteraction(e);
     }
 
@@ -1034,6 +1034,7 @@
     window.addEventListener('mousemove', handleMove);
     window.addEventListener('mouseup', handleEnd);
 
+    // 改用 passive: true 讓瀏覽器更順暢處理頁面滾動與縮放
     canvas.addEventListener('touchstart', handleStart, { passive: true });
     window.addEventListener('touchmove', handleMove, { passive: false });
     window.addEventListener('touchend', handleEnd);
