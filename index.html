@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>迷你 CD 專輯 DIY</title>
 
   <style>
@@ -73,7 +73,6 @@
     }
     .btn-history-icon:hover { background: #f2dec0; }
 
-    /* 紅色圓形白圖示垃圾桶按鈕樣式 */
     .btn-trash-icon {
       background: #ff6347 !important;
       border: 1px solid #e05338 !important;
@@ -110,7 +109,7 @@
       margin-bottom: 15px;
       overflow: hidden; 
       position: relative;
-      touch-action: none; 
+      touch-action: pan-x pan-y; 
       border: 2px solid #D4C3B3; 
       background: #FFFFFF; 
       box-shadow: 0 4px 12px rgba(0,0,0,0.08); 
@@ -120,7 +119,6 @@
     canvas { 
       display: block;
       cursor: pointer; 
-      touch-action: none;
     }
 
     .controls { 
@@ -246,34 +244,6 @@
     .btn-modal-action { background: #9E7B66; color: white; padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 5px; }
     .btn-modal-cancel { background: #dfcca6; color: #5c4033; padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 8px; }
 
-    .preview-modal-content {
-      background: #ffffff;
-      padding: 20px;
-      border-radius: 12px;
-      width: 95%;
-      max-width: 500px;
-      max-height: 90vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      box-shadow: 0 6px 20px rgba(0,0,0,0.25);
-      box-sizing: border-box;
-    }
-    .preview-image-container {
-      width: 100%;
-      max-height: 60vh;
-      overflow: auto;
-      border: 1px solid #D4C3B3;
-      border-radius: 6px;
-      margin: 10px 0;
-      background: #f9f9f9;
-    }
-    .preview-image-container img {
-      width: 100%;
-      height: auto;
-      display: block;
-    }
-
     @media (max-width: 600px) {
       .header-area { flex-direction: column; gap: 10px; min-height: auto; padding-top: 45px; }
       .top-left-logo { position: absolute; left: 0; top: 0; transform: none; }
@@ -316,7 +286,7 @@
 
     <div class="controls">
       <button class="btn btn-toggle" id="toggleBtn" onclick="toggleBleedLines()">切換：預覽成品效果</button>
-      <button class="btn btn-checkout" onclick="openPasswordModal()">🎁 完成設計，前往櫃檯結帳</button>
+      <button class="btn btn-checkout" onclick="openPasswordModal()">🎁 完成設計，傳送至店家</button>
     </div>
 
     <div class="tip-box">
@@ -333,30 +303,21 @@
   <div class="modal-overlay" id="passwordModal">
     <div class="modal-content">
       <h3>🔐 店員權限驗證</h3>
-      <p>請輸入解鎖密碼以檢視排版結果：</p>
+      <p>請輸入解鎖密碼以將排版圖傳送給店員：</p>
       
       <input type="password" id="staffPassword" class="password-input" placeholder="請輸入密碼" maxlength="10">
       <div class="error-msg" id="errorMsg">❌ 密碼錯誤，請重新輸入！</div>
 
-      <button class="btn-modal-action" onclick="verifyPassword()">確認並生成排版圖</button>
+      <button class="btn-modal-action" onclick="verifyPassword()">確認並傳送檔案</button>
       <button class="btn-modal-cancel" onclick="closePasswordModal()">取消</button>
     </div>
   </div>
 
-  <!-- 圖片檢視與下載視窗 -->
-  <div class="modal-overlay" id="previewModal">
-    <div class="preview-modal-content">
-      <h3>🎉 您的迷你 CD 排版完成！</h3>
-      <p style="font-size: 13px; color: #d48800; margin: 0;">手機版請直接**‘長按下方圖片’**選擇儲存到相簿；電腦版可點擊按鈕直接下載。</p>
-      
-      <div class="preview-image-container">
-        <img id="finalResultImg" alt="排版成品圖">
-      </div>
-
-      <div style="display: flex; gap: 10px; width: 100%; margin-top: 5px;">
-        <button class="btn-modal-action" onclick="downloadImageFile()" style="flex: 1; margin: 0;">💾 直接下載檔案</button>
-        <button class="btn-modal-cancel" onclick="closePreviewModal()" style="flex: 1; margin: 0;">關閉視窗</button>
-      </div>
+  <!-- 傳送中或完成提示視窗 -->
+  <div class="modal-overlay" id="statusModal">
+    <div class="modal-content">
+      <h3 id="statusTitle">📤 正在傳送中...</h3>
+      <p id="statusDesc">正在將 1440x960 完整原尺寸高畫質檔案傳送到店家後端，請稍候片刻...</p>
     </div>
   </div>
 
@@ -365,6 +326,9 @@
   <script>
     const DESIGN_WIDTH = 1440;
     const DESIGN_HEIGHT = 960;
+
+    // 請在這裡填入你的 Make Webhook 網址 (例如 'https://hook.eu1.make.com/xxxxxx')
+    const MAKE_WEBHOOK_URL = ''; 
 
     const canvas = document.getElementById('diyCanvas');
     const wrapper = document.getElementById('canvasWrapper');
@@ -381,7 +345,6 @@
 
     const LINE_COLOR = '#E0E0E0';
 
-    // 封底內寬度原本為 518，此處縮小 4px (約1mm)，右邊界往左內縮 4px，foldLineX 也跟著內縮 4px
     let baseZones = [
       { id: '1.封面外', x: 72, top: 45, w: 403, h: 428, type: 'rect', labelMain: '封面外', labelSub: '+ 點擊上傳', img: null, bgColor: '#FFFFFF', imgData: null },
       { id: '2.封面內', x: 475, top: 45, w: 403, h: 428, type: 'rect', labelMain: '封面內', labelSub: '+ 點擊上傳', img: null, bgColor: '#FFFFFF', imgData: null },
@@ -639,7 +602,6 @@
       ctx.strokeStyle = LINE_COLOR;
       ctx.lineWidth = isExporting ? 1.2 : (2.7 / viewZoom);
       ctx.strokeRect(72, 45, 806, 428);
-      // 下排總寬度配合封底內縮減4px，總寬從 1094 調整為 1090
       ctx.strokeRect(72, 505, 1090, 398);
 
       if (isExporting) {
@@ -789,8 +751,6 @@
     let startX = 0, startY = 0;
     let initialScale = 1;
     let initialDist = 0;
-    let touchStartDist = 0;
-    let initialViewZoom = 1;
 
     function getTransformedHandleCoords(z) {
       let targetImg = z.img;
@@ -850,10 +810,10 @@
     }
 
     function handleCanvasInteraction(e) {
-      if (e.touches && e.touches.length === 2) return;
+      if (e.touches && e.touches.length > 1) return;
 
       const { x, y } = getCanvasPos(e);
-      const hitThreshold = ('ontouchstart' in window) ? (45 / viewZoom) : (25 / viewZoom);
+      const hitThreshold = 25 / viewZoom;
 
       if (selectedZoneIndex !== -1) {
         const z = baseZones[selectedZoneIndex];
@@ -979,21 +939,9 @@
     });
 
     function handleMove(e) {
-      if (e.cancelable) e.preventDefault();
-
-      if (e.touches && e.touches.length === 2) {
-        const dist = Math.hypot(
-          e.touches[0].clientX - e.touches[1].clientX,
-          e.touches[0].clientY - e.touches[1].clientY
-        );
-        if (touchStartDist > 0) {
-          viewZoom = Math.min(Math.max(1, initialViewZoom * (dist / touchStartDist)), 4);
-          render();
-        }
-        return;
-      }
-
+      if (e.touches && e.touches.length > 1) return; // 讓雙指縮放交給手機預設處理
       if (!activeMode) return;
+      if (e.cancelable) e.preventDefault();
 
       if (activeMode === 'pan') {
         const clientX = e.touches ? e.touches[0].clientX : e.clientX;
@@ -1074,28 +1022,19 @@
     }
 
     function handleStart(e) {
-      if (e.touches && e.touches.length === 2) {
-        touchStartDist = Math.hypot(
-          e.touches[0].clientX - e.touches[1].clientX,
-          e.touches[0].clientY - e.touches[1].clientY
-        );
-        initialViewZoom = viewZoom;
-        activeMode = null;
-        return;
-      }
+      if (e.touches && e.touches.length > 1) return;
       handleCanvasInteraction(e);
     }
 
     function handleEnd() { 
       activeMode = null; 
-      touchStartDist = 0;
     }
 
     canvas.addEventListener('mousedown', handleCanvasInteraction);
     window.addEventListener('mousemove', handleMove);
     window.addEventListener('mouseup', handleEnd);
 
-    canvas.addEventListener('touchstart', handleStart, { passive: false });
+    canvas.addEventListener('touchstart', handleStart, { passive: true });
     window.addEventListener('touchmove', handleMove, { passive: false });
     window.addEventListener('touchend', handleEnd);
 
@@ -1176,38 +1115,58 @@
       document.getElementById('passwordModal').style.display = 'none';
     }
 
-    function closePreviewModal() {
-      document.getElementById('previewModal').style.display = 'none';
-    }
-
-    let globalDataUrl = '';
-
     function verifyPassword() {
       const inputVal = document.getElementById('staffPassword').value;
       if (inputVal === '880526') {
         closePasswordModal();
-        generateFinalImageForPreview();
+        sendImageToWebhook();
       } else {
         document.getElementById('errorMsg').style.display = 'block';
       }
     }
 
-    function generateFinalImageForPreview() {
+    function sendImageToWebhook() {
+      if (!MAKE_WEBHOOK_URL) {
+        alert('尚未設定 Make Webhook 網址，請先在程式碼中填入 MAKE_WEBHOOK_URL！');
+        return;
+      }
+
+      const statusModal = document.getElementById('statusModal');
+      document.getElementById('statusTitle').innerText = '📤 正在傳送中...';
+      document.getElementById('statusDesc').innerText = '正在將 1440x960 完整原尺寸高畫質檔案傳送到店家後端，請稍候片刻...';
+      statusModal.style.display = 'flex';
+
       selectedZoneIndex = -1;
       render(true); 
 
-      globalDataUrl = canvas.toDataURL('image/png', 1.0);
-      document.getElementById('finalResultImg').src = globalDataUrl;
-      document.getElementById('previewModal').style.display = 'flex';
+      canvas.toBlob(function(blob) {
+        const formData = new FormData();
+        formData.append('file', blob, 'mini_cd_design.png');
+        formData.append('timestamp', new Date().toISOString());
 
-      render(false); 
-    }
+        fetch(MAKE_WEBHOOK_URL, {
+          method: 'POST',
+          body: formData
+        })
+        .then(response => {
+          if (response.ok) {
+            document.getElementById('statusTitle').innerText = '🎉 傳送成功！';
+            document.getElementById('statusDesc').innerText = '您的設計已成功送交給店家，請通知店員協助印製！';
+            setTimeout(() => {
+              statusModal.style.display = 'none';
+            }, 3000);
+          } else {
+            throw new Error('Server response failed');
+          }
+        })
+        .catch(error => {
+          console.error(error);
+          document.getElementById('statusTitle').innerText = '❌ 傳送失敗';
+          document.getElementById('statusDesc').innerText = '網路連線異常或伺服器忙碌中，請再試一次或直接聯繫店員。';
+        });
 
-    function downloadImageFile() {
-      const link = document.createElement('a');
-      link.download = '迷你CD專輯排版.png';
-      link.href = globalDataUrl;
-      link.click();
+        render(false); 
+      }, 'image/png', 1.0);
     }
 
     window.addEventListener('load', () => {
