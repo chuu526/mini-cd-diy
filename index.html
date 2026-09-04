@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>迷你 CD 專輯 DIY</title>
+  <title>迷你 CD 專輯 DIY - 店員密碼鎖版</title>
 
   <style>
     body { 
@@ -96,6 +96,49 @@
     .btn-delete { background: #dfcca6; color: #5c4033; } 
     .btn-checkout { background: #9E7B66; color: #ffffff; } 
 
+    /* 底色控制區樣式 */
+    .color-picker-bar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: #fff5eb;
+      border: 1px solid #e8d5c4;
+      padding: 10px 16px;
+      border-radius: 6px;
+      width: 100%;
+      max-width: 850px;
+      box-sizing: border-box;
+      margin-bottom: 12px;
+      font-size: 14px;
+      color: #4a3b32;
+      font-weight: bold;
+    }
+
+    .color-picker-bar input[type="color"] {
+      border: none;
+      width: 35px;
+      height: 35px;
+      border-radius: 4px;
+      cursor: pointer;
+      background: none;
+    }
+
+    .color-presets {
+      display: flex;
+      gap: 6px;
+    }
+
+    .preset-btn {
+      padding: 5px 10px;
+      font-size: 12px;
+      border: 1px solid #d4c3b3;
+      border-radius: 4px;
+      cursor: pointer;
+      background: #fff;
+      color: #5c4033;
+    }
+    .preset-btn:hover { background: #f0e6dc; }
+
     .tip-box { 
       background: #fffbe6; 
       border: 1px solid #ffe58f; 
@@ -165,6 +208,7 @@
     @media (max-width: 600px) {
       .header-area { flex-direction: column; gap: 10px; }
       .top-left-logo { position: static; transform: none; }
+      .color-picker-bar { flex-direction: column; align-items: flex-start; }
     }
   </style>
 </head>
@@ -178,6 +222,17 @@
 
     <div class="canvas-wrapper">
       <canvas id="diyCanvas"></canvas>
+    </div>
+
+    <div class="color-picker-bar">
+      <span>🎨 套圖格子底色：</span>
+      <input type="color" id="zoneBgColorPicker" value="#FFFFFF" onchange="changeZoneBgColor(this.value)">
+      <div class="color-presets">
+        <button class="preset-btn" onclick="setPresetColor('#FFFFFF')">純白</button>
+        <button class="preset-btn" onclick="setPresetColor('#FFFAF2')">米色</button>
+        <button class="preset-btn" onclick="setPresetColor('#FFF0F5')">淺粉</button>
+        <button class="preset-btn" onclick="setPresetColor('#F0F8FF')">淺藍</button>
+      </div>
     </div>
 
     <div class="controls">
@@ -233,6 +288,7 @@
 
     let showBleed = true;
     let selectedZoneIndex = -1;
+    let currentZoneBgColor = '#FFFFFF'; // 預設套圖底色
 
     const baseZones = [
       { id: '1.封面外', x: 72, top: 45, w: 403, h: 428, type: 'rect', labelMain: '封面外', labelSub: '+ 點擊上傳', img: null },
@@ -249,6 +305,16 @@
       canvas.width = DESIGN_WIDTH * dpr;
       canvas.height = DESIGN_HEIGHT * dpr;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+
+    function changeZoneBgColor(color) {
+      currentZoneBgColor = color;
+      document.getElementById('zoneBgColorPicker').value = color;
+      render();
+    }
+
+    function setPresetColor(color) {
+      changeZoneBgColor(color);
     }
 
     function render() {
@@ -272,8 +338,8 @@
         }
         ctx.clip();
 
-        // 將格子底色從原先的微黃改為純白色 (#FFFFFF)
-        ctx.fillStyle = '#FFFFFF';
+        // 使用使用者選擇的套圖底色
+        ctx.fillStyle = currentZoneBgColor;
         ctx.fill();
 
         if (z.img) {
