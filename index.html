@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>迷你 CD 專輯 DIY - 櫃檯結帳高畫質版</title>
+  <title>迷你 CD 專輯 DIY - 完美不變形高畫質版</title>
 
   <style>
     body { 
@@ -11,7 +11,7 @@
       display: flex; 
       flex-direction: column; 
       align-items: center; 
-      padding: 15px 15px 30px 15px; 
+      padding: 15px; 
       background: #FFFAF2; 
       margin: 0; 
       box-sizing: border-box;
@@ -19,7 +19,7 @@
 
     .main-container {
       width: 100%;
-      max-width: 800px;
+      max-width: 900px;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -52,16 +52,16 @@
 
     .canvas-wrapper { 
       width: 100%; 
-      max-width: 800px; 
+      max-width: 850px; 
       display: flex; 
       justify-content: center; 
       margin-bottom: 15px; 
     }
 
     canvas { 
-      width: 100%; 
-      height: auto; 
-      max-width: 800px;
+      width: 100% !important; 
+      height: auto !important; 
+      max-width: 850px;
       border: 2px solid #D4C3B3; 
       background: #FFFFFF; 
       box-shadow: 0 4px 12px rgba(0,0,0,0.08); 
@@ -76,7 +76,7 @@
       flex-wrap: wrap; 
       justify-content: center; 
       width: 100%; 
-      max-width: 800px; 
+      max-width: 850px; 
       margin-bottom: 12px;
     }
 
@@ -104,7 +104,7 @@
       font-size: 13px; 
       color: #d48800; 
       width: 100%; 
-      max-width: 800px; 
+      max-width: 850px; 
       box-sizing: border-box; 
     }
     .tip-box ul { margin: 5px 0 0 18px; padding: 0; }
@@ -166,8 +166,7 @@
     </div>
 
     <div class="canvas-wrapper">
-      <!-- 採用 2 倍高畫質 Retina 渲染核心 -->
-      <canvas id="diyCanvas" width="2880" height="1920" style="width:1440px; max-width:100%;"></canvas>
+      <canvas id="diyCanvas"></canvas>
     </div>
     <input type="file" id="hiddenFileInput" accept="image/*" style="display:none;" onchange="handleFileSelect(event)">
 
@@ -181,7 +180,7 @@
       <b>✂️ 操作說明：</b> 
       <ul>
         <li>點擊空白格子自由上傳、移動、縮放與旋轉您的照片。</li>
-        <li>已全面升級為<b>原圖不失真高畫質核心</b>，文字與幾何邊緣保持最清晰狀態！</li>
+        <li>版面已修復為<b>完美比例自適應</b>，電腦與手機皆不變形、清晰不模糊！</li>
       </ul>
     </div>
   </div>
@@ -201,13 +200,9 @@
   </div>
 
   <script>
-    // 內部基礎邏輯改以 2 倍解析度 (2880 x 1920) 運作以確保絕對不失真
-    const BASE_WIDTH = 1440;
-    const BASE_HEIGHT = 960;
-    const SCALE_FACTOR = 2; // 2倍高解析放大
-    
-    const CANVAS_WIDTH = BASE_WIDTH * SCALE_FACTOR;
-    const CANVAS_HEIGHT = BASE_HEIGHT * SCALE_FACTOR;
+    // 固定設計稿邏輯尺寸比例 (寬 1440 : 高 960)
+    const DESIGN_WIDTH = 1440;
+    const DESIGN_HEIGHT = 960;
 
     const canvas = document.getElementById('diyCanvas');
     const ctx = canvas.getContext('2d');
@@ -215,33 +210,43 @@
     let showBleed = true;
     let selectedZoneIndex = -1;
 
-    // 將座標全部乘上 2 倍以符合高解析畫布
-    const zones = [
-      { id: '1.封面外', x: 72*SCALE_FACTOR, top: 45*SCALE_FACTOR, w: 403*SCALE_FACTOR, h: 428*SCALE_FACTOR, type: 'rect', labelMain: '封面外', labelSub: '+ 點擊上傳', img: null },
-      { id: '2.封面內', x: 475*SCALE_FACTOR, top: 45*SCALE_FACTOR, w: 403*SCALE_FACTOR, h: 428*SCALE_FACTOR, type: 'rect', labelMain: '封面內', labelSub: '+ 點擊上傳', img: null },
-      { id: '3.CD光碟', x: 963*SCALE_FACTOR, top: 65*SCALE_FACTOR, w: 389*SCALE_FACTOR, h: 389*SCALE_FACTOR, type: 'cd', labelMain: 'CD 封面', labelSub: '+ 點擊上傳', img: null },
-      { id: '4.封底外(含折邊)', x: 72*SCALE_FACTOR, top: 505*SCALE_FACTOR, w: 518*SCALE_FACTOR, h: 398*SCALE_FACTOR, type: 'rect', labelMain: '封底外', labelSub: '(含左折邊) + 點擊上傳', foldLineX: 126*SCALE_FACTOR, img: null },
-      { id: '5.書背1', x: 590*SCALE_FACTOR, top: 505*SCALE_FACTOR, w: 29*SCALE_FACTOR, h: 398*SCALE_FACTOR, type: 'rect', isSpine: true, labelSpine: '書背1', img: null },
-      { id: '6.書背2', x: 619*SCALE_FACTOR, top: 505*SCALE_FACTOR, w: 29*SCALE_FACTOR, h: 398*SCALE_FACTOR, type: 'rect', isSpine: true, labelSpine: '書背2', img: null },
-      { id: '7.封底內(含折邊)', x: 648*SCALE_FACTOR, top: 505*SCALE_FACTOR, w: 518*SCALE_FACTOR, h: 398*SCALE_FACTOR, type: 'rect', labelMain: '封底內', labelSub: '(含右折邊) + 點擊上傳', foldLineX: 1112*SCALE_FACTOR, img: null }
+    const baseZones = [
+      { id: '1.封面外', x: 72, top: 45, w: 403, h: 428, type: 'rect', labelMain: '封面外', labelSub: '+ 點擊上傳', img: null },
+      { id: '2.封面內', x: 475, top: 45, w: 403, h: 428, type: 'rect', labelMain: '封面內', labelSub: '+ 點擊上傳', img: null },
+      { id: '3.CD光碟', x: 963, top: 65, w: 389, h: 389, type: 'cd', labelMain: 'CD 封面', labelSub: '+ 點擊上傳', img: null },
+      { id: '4.封底外(含折邊)', x: 72, top: 505, w: 518, h: 398, type: 'rect', labelMain: '封底外', labelSub: '(含左折邊) + 點擊上傳', foldLineX: 126, img: null },
+      { id: '5.書背1', x: 590, top: 505, w: 29, h: 398, type: 'rect', isSpine: true, labelSpine: '書背1', img: null },
+      { id: '6.書背2', x: 619, top: 505, w: 29, h: 398, type: 'rect', isSpine: true, labelSpine: '書背2', img: null },
+      { id: '7.封底內(含折邊)', x: 648, top: 505, w: 518, h: 398, type: 'rect', labelMain: '封底內', labelSub: '(含右折邊) + 點擊上傳', foldLineX: 1112, img: null }
     ];
 
+    function initCanvasSize() {
+      const dpr = window.devicePixelRatio || 1;
+      
+      // 內部維持高畫質渲染解析度
+      canvas.width = DESIGN_WIDTH * dpr;
+      canvas.height = DESIGN_HEIGHT * dpr;
+
+      // 讓 Canvas 呈現等比例縮放，絕不變形
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+
     function render() {
-      // 開啟最高等級的清晰影像平滑處理
       ctx.imageSmoothingEnabled = true;
       ctx.imageSmoothingQuality = 'high';
 
+      ctx.clearRect(0, 0, DESIGN_WIDTH, DESIGN_HEIGHT);
       ctx.fillStyle = '#FFFFFF';
-      ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+      ctx.fillRect(0, 0, DESIGN_WIDTH, DESIGN_HEIGHT);
 
-      zones.forEach((z) => {
+      baseZones.forEach((z) => {
         ctx.save();
         ctx.beginPath();
         if (z.type === 'cd') {
           const centerX = z.x + z.w/2;
           const centerY = z.top + z.h/2;
           ctx.arc(centerX, centerY, z.w/2, 0, Math.PI * 2, false);
-          ctx.arc(centerX, centerY, 29*SCALE_FACTOR, 0, Math.PI * 2, true);
+          ctx.arc(centerX, centerY, 29, 0, Math.PI * 2, true);
         } else {
           ctx.rect(z.x, z.top, z.w, z.h);
         }
@@ -270,21 +275,21 @@
             ctx.save();
             ctx.translate(z.x + z.w/2, z.top + z.h/2);
             ctx.rotate(-Math.PI / 2);
-            ctx.font = `bold ${20*SCALE_FACTOR}px sans-serif`;
+            ctx.font = 'bold 20px sans-serif';
             ctx.fillText(z.labelSpine, 0, 0);
             ctx.restore();
           } else {
-            ctx.font = `bold ${27*SCALE_FACTOR}px sans-serif`;
-            ctx.fillText(z.labelMain, z.x + z.w/2, z.top + z.h/2 - 18*SCALE_FACTOR);
+            ctx.font = 'bold 27px sans-serif';
+            ctx.fillText(z.labelMain, z.x + z.w/2, z.top + z.h/2 - 18);
             ctx.fillStyle = '#A8998A';
-            ctx.font = `${20*SCALE_FACTOR}px sans-serif`;
-            ctx.fillText(z.labelSub, z.x + z.w/2, z.top + z.h/2 + 18*SCALE_FACTOR);
+            ctx.font = '20px sans-serif';
+            ctx.fillText(z.labelSub, z.x + z.w/2, z.top + z.h/2 + 18);
           }
         }
         ctx.restore();
 
         ctx.strokeStyle = '#333333';
-        ctx.lineWidth = 2.2 * SCALE_FACTOR;
+        ctx.lineWidth = 2.2;
         ctx.beginPath();
         if (z.type === 'cd') {
           const centerX = z.x + z.w/2;
@@ -292,7 +297,7 @@
           ctx.arc(centerX, centerY, z.w/2, 0, Math.PI * 2);
           ctx.stroke();
           ctx.beginPath();
-          ctx.arc(centerX, centerY, 29*SCALE_FACTOR, 0, Math.PI * 2);
+          ctx.arc(centerX, centerY, 29, 0, Math.PI * 2);
           ctx.stroke();
         } else {
           ctx.rect(z.x, z.top, z.w, z.h);
@@ -302,7 +307,7 @@
         if (z.foldLineX) {
           ctx.save();
           ctx.strokeStyle = '#666666';
-          ctx.lineWidth = 1.8 * SCALE_FACTOR;
+          ctx.lineWidth = 1.8;
           ctx.beginPath();
           ctx.moveTo(z.foldLineX, z.top);
           ctx.lineTo(z.foldLineX, z.top + z.h);
@@ -313,31 +318,31 @@
 
       // 外框
       ctx.strokeStyle = '#333333';
-      ctx.lineWidth = 2.7 * SCALE_FACTOR;
-      ctx.strokeRect(72*SCALE_FACTOR, 45*SCALE_FACTOR, 806*SCALE_FACTOR, 428*SCALE_FACTOR);
-      ctx.strokeRect(72*SCALE_FACTOR, 505*SCALE_FACTOR, 1094*SCALE_FACTOR, 398*SCALE_FACTOR);
+      ctx.lineWidth = 2.7;
+      ctx.strokeRect(72, 45, 806, 428);
+      ctx.strokeRect(72, 505, 1094, 398);
 
       if (showBleed) {
         ctx.save();
         ctx.strokeStyle = '#E53935'; 
-        ctx.lineWidth = 2.7 * SCALE_FACTOR;
-        ctx.setLineDash([9*SCALE_FACTOR, 9*SCALE_FACTOR]);       
-        ctx.strokeRect(86*SCALE_FACTOR, 59*SCALE_FACTOR, 778*SCALE_FACTOR, 400*SCALE_FACTOR);
-        const cd = zones[2];
+        ctx.lineWidth = 2.7;
+        ctx.setLineDash([9, 9]);       
+        ctx.strokeRect(86, 59, 778, 400);
+        const cd = baseZones[2];
         ctx.beginPath();
-        ctx.arc(cd.x + cd.w/2, cd.top + cd.h/2, 184*SCALE_FACTOR, 0, Math.PI * 2);
+        ctx.arc(cd.x + cd.w/2, cd.top + cd.h/2, 184, 0, Math.PI * 2);
         ctx.stroke();
-        ctx.strokeRect(92*SCALE_FACTOR, 521*SCALE_FACTOR, 1054*SCALE_FACTOR, 369*SCALE_FACTOR);
+        ctx.strokeRect(92, 521, 1054, 369);
         ctx.restore();
       }
 
       if (selectedZoneIndex !== -1) {
-        const z = zones[selectedZoneIndex];
+        const z = baseZones[selectedZoneIndex];
         if (z.img) {
           drawTransformControls(z);
         } else {
           ctx.strokeStyle = '#1890ff';
-          ctx.lineWidth = 3.5 * SCALE_FACTOR;
+          ctx.lineWidth = 3.5;
           if (z.type === 'cd') {
             ctx.beginPath();
             ctx.arc(z.x + z.w/2, z.top + z.h/2, z.w/2, 0, Math.PI * 2);
@@ -360,17 +365,17 @@
       ctx.rotate(z.imgData.angle * Math.PI / 180);
 
       ctx.strokeStyle = '#1890ff';
-      ctx.lineWidth = 2.7 * SCALE_FACTOR;
+      ctx.lineWidth = 2.7;
       ctx.strokeRect(-w/2, -h/2, w, h);
 
       ctx.beginPath();
       ctx.moveTo(0, -h/2);
-      ctx.lineTo(0, -h/2 - 45*SCALE_FACTOR);
+      ctx.lineTo(0, -h/2 - 45);
       ctx.strokeStyle = '#1890ff';
       ctx.stroke();
 
       ctx.beginPath();
-      ctx.arc(0, -h/2 - 45*SCALE_FACTOR, 12*SCALE_FACTOR, 0, Math.PI * 2);
+      ctx.arc(0, -h/2 - 45, 12, 0, Math.PI * 2);
       ctx.fillStyle = '#1890ff';
       ctx.fill();
 
@@ -378,9 +383,9 @@
       handles.forEach(hCoord => {
         ctx.fillStyle = '#ffffff';
         ctx.strokeStyle = '#1890ff';
-        ctx.lineWidth = 2.7 * SCALE_FACTOR;
-        ctx.fillRect(hCoord.x - 9*SCALE_FACTOR, hCoord.y - 9*SCALE_FACTOR, 18*SCALE_FACTOR, 18*SCALE_FACTOR);
-        ctx.strokeRect(hCoord.x - 9*SCALE_FACTOR, hCoord.y - 9*SCALE_FACTOR, 18*SCALE_FACTOR, 18*SCALE_FACTOR);
+        ctx.lineWidth = 2.7;
+        ctx.fillRect(hCoord.x - 9, hCoord.y - 9, 18, 18);
+        ctx.strokeRect(hCoord.x - 9, hCoord.y - 9, 18, 18);
       });
       ctx.restore();
     }
@@ -403,8 +408,8 @@
         y: centerY + lh.x * Math.sin(rad) + lh.y * Math.cos(rad)
       }));
       const rotHandle = {
-        x: centerX - (-h/2 - 45*SCALE_FACTOR) * Math.sin(rad),
-        y: centerY + (-h/2 - 45*SCALE_FACTOR) * Math.cos(rad)
+        x: centerX - (-h/2 - 45) * Math.sin(rad),
+        y: centerY + (-h/2 - 45) * Math.cos(rad)
       };
       return { globalHandles, rotHandle };
     }
@@ -413,19 +418,18 @@
       const rect = canvas.getBoundingClientRect();
       const clientX = e.touches ? e.touches[0].clientX : e.clientX;
       const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-      // 根據高畫質比例動態換算座標
       return {
-        x: (clientX - rect.left) * (CANVAS_WIDTH / rect.width),
-        y: (clientY - rect.top) * (CANVAS_HEIGHT / rect.height)
+        x: (clientX - rect.left) * (DESIGN_WIDTH / rect.width),
+        y: (clientY - rect.top) * (DESIGN_HEIGHT / rect.height)
       };
     }
 
     function handleStart(e) {
       const { x, y } = getCanvasPos(e);
-      const hitThreshold = (('ontouchstart' in window) ? 40 : 25) * SCALE_FACTOR;
+      const hitThreshold = ('ontouchstart' in window) ? 40 : 25;
 
-      if (selectedZoneIndex !== -1 && zones[selectedZoneIndex].img) {
-        const z = zones[selectedZoneIndex];
+      if (selectedZoneIndex !== -1 && baseZones[selectedZoneIndex].img) {
+        const z = baseZones[selectedZoneIndex];
         const { globalHandles, rotHandle } = getTransformedHandleCoords(z);
 
         if (Math.hypot(x - rotHandle.x, y - rotHandle.y) <= hitThreshold) {
@@ -446,7 +450,7 @@
       const hitIndex = getHitZone(x, y);
       if (hitIndex !== -1) {
         selectedZoneIndex = hitIndex;
-        if (!zones[hitIndex].img) {
+        if (!baseZones[hitIndex].img) {
           document.getElementById('hiddenFileInput').click();
         } else {
           activeMode = 'move'; startX = x; startY = y;
@@ -458,10 +462,10 @@
     }
 
     function handleMove(e) {
-      if (selectedZoneIndex === -1 || !zones[selectedZoneIndex].img || !activeMode) return;
+      if (selectedZoneIndex === -1 || !baseZones[selectedZoneIndex].img || !activeMode) return;
       if (e.cancelable) e.preventDefault();
 
-      const z = zones[selectedZoneIndex];
+      const z = baseZones[selectedZoneIndex];
       const centerX = z.x + z.w/2 + z.imgData.offsetX;
       const centerY = z.top + z.h/2 + z.imgData.offsetY;
       const { x, y } = getCanvasPos(e);
@@ -496,20 +500,20 @@
     window.addEventListener('touchend', handleEnd);
 
     function getHitZone(x, y) {
-      return zones.findIndex(z => {
+      return baseZones.findIndex(z => {
         if (z.type === 'cd') {
           const dx = x - (z.x + z.w/2), dy = y - (z.top + z.h/2);
           const dist = Math.sqrt(dx*dx + dy*dy);
-          return dist <= z.w/2 && dist >= 29*SCALE_FACTOR;
+          return dist <= z.w/2 && dist >= 29;
         }
         return x >= z.x && x <= z.x + z.w && y >= z.top && y <= z.top + z.h;
       });
     }
 
     canvas.addEventListener('wheel', (e) => {
-      if (selectedZoneIndex !== -1 && zones[selectedZoneIndex].img) {
+      if (selectedZoneIndex !== -1 && baseZones[selectedZoneIndex].img) {
         e.preventDefault();
-        const z = zones[selectedZoneIndex];
+        const z = baseZones[selectedZoneIndex];
         z.imgData.scale = Math.min(Math.max(0.05, z.imgData.scale * (e.deltaY < 0 ? 1.05 : 0.95)), 5);
         render();
       }
@@ -522,9 +526,8 @@
       reader.onload = function(event) {
         const img = new Image();
         img.onload = function() {
-          const z = zones[selectedZoneIndex];
+          const z = baseZones[selectedZoneIndex];
           z.img = img;
-          // 以格子尺寸與原圖尺寸完美計算初始縮放比例，維持最高畫質
           z.imgData = { offsetX: 0, offsetY: 0, scale: Math.max(z.w / img.width, z.h / img.height), angle: 0 };
           render();
         };
@@ -535,7 +538,7 @@
     }
 
     function toggleBleedLines() { showBleed = !showBleed; render(); }
-    function clearSelectedZone() { if (selectedZoneIndex !== -1) { zones[selectedZoneIndex].img = null; render(); } }
+    function clearSelectedZone() { if (selectedZoneIndex !== -1) { baseZones[selectedZoneIndex].img = null; render(); } }
 
     function openCheckoutModal() {
       document.getElementById('checkoutModal').style.display = 'flex';
@@ -545,8 +548,14 @@
       document.getElementById('checkoutModal').style.display = 'none';
     }
 
-    window.addEventListener('load', () => render());
-    setTimeout(() => render(), 100);
+    window.addEventListener('load', () => {
+      initCanvasSize();
+      render();
+    });
+    setTimeout(() => {
+      initCanvasSize();
+      render();
+    }, 100);
   </script>
 </body>
 </html>
