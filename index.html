@@ -52,6 +52,7 @@
       transform: translateY(-50%);
       display: flex;
       gap: 6px;
+      align-items: center;
     }
 
     .btn-history-icon {
@@ -68,8 +69,36 @@
       align-items: center;
       font-weight: bold;
       box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+      padding: 0;
     }
     .btn-history-icon:hover { background: #f2dec0; }
+
+    /* 紅色圓形白圖示垃圾桶按鈕樣式 (使用 #ff6347) */
+    .btn-trash-icon {
+      background: #ff6347 !important;
+      border: 1px solid #e05338 !important;
+      border-radius: 50% !important;
+      width: 38px;
+      height: 38px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      padding: 0;
+    }
+    .btn-trash-icon:hover { background: #f45133 !important; }
+    .btn-trash-icon:disabled {
+      background: #e0e0e0 !important;
+      border-color: #cccccc !important;
+      cursor: not-allowed;
+      opacity: 0.6;
+    }
+    .btn-trash-icon svg {
+      width: 20px;
+      height: 20px;
+      fill: #ffffff;
+    }
 
     h2 { margin: 0; font-size: 22px; color: #4a3b32; }
 
@@ -78,17 +107,18 @@
       max-width: 850px; 
       display: flex; 
       justify-content: center; 
-      margin-bottom: 15px; 
-    }
-
-    canvas { 
-      width: 100% !important; 
-      height: auto !important; 
-      max-width: 850px;
+      margin-bottom: 15px;
+      overflow: hidden; 
+      position: relative;
+      touch-action: none; 
       border: 2px solid #D4C3B3; 
       background: #FFFFFF; 
       box-shadow: 0 4px 12px rgba(0,0,0,0.08); 
       border-radius: 8px; 
+    }
+
+    canvas { 
+      display: block;
       cursor: pointer; 
       touch-action: none;
     }
@@ -116,9 +146,16 @@
       border: 1px solid #D4C3B3;
     }
     
-    .btn-toggle { background: #b89b88; color: #ffffff; border-color: #a48774; } 
-    .btn-delete { background: #F9E9CD; color: #5c4033; } 
-    .btn-delete:hover { background: #f2dec0; }
+    /* 更新切換預覽按鈕底色為 #deb887 */
+    .btn-toggle { 
+      background: #deb887; 
+      color: #ffffff; 
+      border-color: #cca677; 
+    } 
+    .btn-toggle:hover {
+      background: #cea877;
+    }
+
     .btn-checkout { background: #9E7B66; color: #ffffff; border-color: #8b6a55; } 
 
     .color-picker-bar {
@@ -212,6 +249,34 @@
     .btn-modal-action { background: #9E7B66; color: white; padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 5px; }
     .btn-modal-cancel { background: #dfcca6; color: #5c4033; padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 8px; }
 
+    .preview-modal-content {
+      background: #ffffff;
+      padding: 20px;
+      border-radius: 12px;
+      width: 95%;
+      max-width: 500px;
+      max-height: 90vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+      box-sizing: border-box;
+    }
+    .preview-image-container {
+      width: 100%;
+      max-height: 60vh;
+      overflow: auto;
+      border: 1px solid #D4C3B3;
+      border-radius: 6px;
+      margin: 10px 0;
+      background: #f9f9f9;
+    }
+    .preview-image-container img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
     @media (max-width: 600px) {
       .header-area { flex-direction: column; gap: 10px; min-height: auto; padding-top: 45px; }
       .top-left-logo { position: absolute; left: 0; top: 0; transform: none; }
@@ -229,10 +294,16 @@
       <div class="top-right-history">
         <button class="btn-history-icon" onclick="undoAction()" title="返回上一步">↶</button>
         <button class="btn-history-icon" onclick="redoAction()" title="重做下一步">↷</button>
+        <button class="btn-trash-icon" id="trashBtn" onclick="clearSelectedZone()" title="清除選中照片" disabled>
+          <!-- SVG 白色垃圾桶圖示 -->
+          <svg viewBox="0 0 24 24">
+            <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
+          </svg>
+        </button>
       </div>
     </div>
 
-    <div class="canvas-wrapper">
+    <div class="canvas-wrapper" id="canvasWrapper">
       <canvas id="diyCanvas"></canvas>
     </div>
 
@@ -240,16 +311,15 @@
       <span id="colorBarLabel">🎨 請點選上方格子以設定個別底色：</span>
       <input type="color" id="zoneBgColorPicker" value="#FFFFFF" onchange="changeSelectedZoneBgColor(this.value)">
       <div class="color-presets">
-        <button class="preset-btn" onclick="setPresetColor('#FFFFFF')">純白</button>
-        <button class="preset-btn" onclick="setPresetColor('#FFFAF2')">米色</button>
-        <button class="preset-btn" onclick="setPresetColor('#FFF0F5')">淺粉</button>
-        <button class="preset-btn" onclick="setPresetColor('#F0F8FF')">淺藍</button>
+        <button class="preset-btn" onclick="setPresetColor('#FFFFFF')">純白底</button>
+        <button class="preset-btn" onclick="setPresetColor('#FFFAF2')">米色底</button>
+        <button class="preset-btn" onclick="setPresetColor('#FFF0F5')">淺粉底</button>
+        <button class="preset-btn" onclick="setPresetColor('#222222')">深色底</button>
       </div>
     </div>
 
     <div class="controls">
       <button class="btn btn-toggle" id="toggleBtn" onclick="toggleBleedLines()">切換：預覽成品效果</button>
-      <button class="btn btn-delete" onclick="clearSelectedZone()">清除選中照片</button>
       <button class="btn btn-checkout" onclick="openPasswordModal()">🎁 完成設計，前往櫃檯結帳</button>
     </div>
 
@@ -257,21 +327,39 @@
       <b>✂️ 操作說明：</b> 
       <ul>
         <li>點擊任一格子可上傳照片，並直接在下方切換該格子的獨立底色。</li>
-        <li>點擊「切換：預覽成品效果」可隱藏出血線外側，直接預覽裁切後的真實成品！</li>
+        <li>製作完成後，需要找店員解密下載！</li>
       </ul>
     </div>
   </div>
 
+  <!-- 密碼驗證視窗 -->
   <div class="modal-overlay" id="passwordModal">
     <div class="modal-content">
       <h3>🔐 店員權限驗證</h3>
-      <p>請輸入解鎖密碼以直接下載圖片：</p>
+      <p>請輸入解鎖密碼以檢視排版結果：</p>
       
       <input type="password" id="staffPassword" class="password-input" placeholder="請輸入密碼" maxlength="10">
       <div class="error-msg" id="errorMsg">❌ 密碼錯誤，請重新輸入！</div>
 
-      <button class="btn-modal-action" onclick="verifyPassword()">確認並下載</button>
+      <button class="btn-modal-action" onclick="verifyPassword()">確認並生成排版圖</button>
       <button class="btn-modal-cancel" onclick="closePasswordModal()">取消</button>
+    </div>
+  </div>
+
+  <!-- 圖片檢視與下載視窗 -->
+  <div class="modal-overlay" id="previewModal">
+    <div class="preview-modal-content">
+      <h3>🎉 您的迷你 CD 排版完成！</h3>
+      <p style="font-size: 13px; color: #d48800; margin: 0;">手機版請直接**‘長按下方圖片’**選擇儲存到相簿；電腦版可點擊按鈕直接下載。</p>
+      
+      <div class="preview-image-container">
+        <img id="finalResultImg" alt="排版成品圖">
+      </div>
+
+      <div style="display: flex; gap: 10px; width: 100%; margin-top: 5px;">
+        <button class="btn-modal-action" onclick="downloadImageFile()" style="flex: 1; margin: 0;">💾 直接下載檔案</button>
+        <button class="btn-modal-cancel" onclick="closePreviewModal()" style="flex: 1; margin: 0;">關閉視窗</button>
+      </div>
     </div>
   </div>
 
@@ -282,11 +370,19 @@
     const DESIGN_HEIGHT = 960;
 
     const canvas = document.getElementById('diyCanvas');
+    const wrapper = document.getElementById('canvasWrapper');
     const ctx = canvas.getContext('2d');
     const globalFileInput = document.getElementById('globalFileInput');
+    const trashBtn = document.getElementById('trashBtn');
 
     let previewFinished = false;
     let selectedZoneIndex = -1;
+
+    let viewZoom = 1;
+    let viewPanX = 0;
+    let viewPanY = 0;
+
+    const LINE_COLOR = '#E0E0E0';
 
     let baseZones = [
       { id: '1.封面外', x: 72, top: 45, w: 403, h: 428, type: 'rect', labelMain: '封面外', labelSub: '+ 點擊上傳', img: null, bgColor: '#FFFFFF', imgData: null },
@@ -367,10 +463,19 @@
 
     function initCanvasSize() {
       const dpr = window.devicePixelRatio || 1;
+      const displayWidth = wrapper.clientWidth;
+      const displayHeight = displayWidth * (DESIGN_HEIGHT / DESIGN_WIDTH);
+
+      canvas.style.width = displayWidth + 'px';
+      canvas.style.height = displayHeight + 'px';
+
       canvas.width = DESIGN_WIDTH * dpr;
       canvas.height = DESIGN_HEIGHT * dpr;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      render();
     }
+
+    window.addEventListener('resize', initCanvasSize);
 
     function changeSelectedZoneBgColor(color) {
       if (selectedZoneIndex !== -1) {
@@ -397,9 +502,16 @@
         label.innerHTML = `🎨 設定【${z.id.replace(/^\d+\./, '')}】格子底色：`;
         picker.value = z.bgColor;
         picker.disabled = false;
+
+        if (z.img) {
+          trashBtn.disabled = false;
+        } else {
+          trashBtn.disabled = true;
+        }
       } else {
         label.innerHTML = `🎨 請先點選上方格子以設定個別底色：`;
         picker.disabled = true;
+        trashBtn.disabled = true;
       }
     }
 
@@ -407,7 +519,14 @@
       ctx.imageSmoothingEnabled = true;
       ctx.imageSmoothingQuality = 'high';
 
+      ctx.save();
       ctx.clearRect(0, 0, DESIGN_WIDTH, DESIGN_HEIGHT);
+
+      if (!isExporting) {
+        ctx.translate(viewPanX, viewPanY);
+        ctx.scale(viewZoom, viewZoom);
+      }
+
       ctx.fillStyle = '#FFFFFF';
       ctx.fillRect(0, 0, DESIGN_WIDTH, DESIGN_HEIGHT);
 
@@ -460,9 +579,8 @@
         }
         ctx.restore();
 
-        // 格子線與書背交界線：匯出時改為細白色實線
-        ctx.strokeStyle = isExporting ? '#FFFFFF' : '#333333';
-        ctx.lineWidth = isExporting ? 1.0 : 2.2;
+        ctx.strokeStyle = LINE_COLOR;
+        ctx.lineWidth = isExporting ? 1.2 : (2.2 / viewZoom);
         
         ctx.beginPath();
         if (z.type === 'cd') {
@@ -478,11 +596,10 @@
           ctx.stroke();
         }
 
-        // 摺痕線：匯出時也改為細白色實線
         if (z.foldLineX) {
           ctx.save();
-          ctx.strokeStyle = isExporting ? '#FFFFFF' : '#666666';
-          ctx.lineWidth = isExporting ? 1.0 : 1.8;
+          ctx.strokeStyle = LINE_COLOR;
+          ctx.lineWidth = isExporting ? 1.2 : (1.8 / viewZoom);
           ctx.beginPath();
           ctx.moveTo(z.foldLineX, z.top);
           ctx.lineTo(z.foldLineX, z.top + z.h);
@@ -491,24 +608,21 @@
         }
       });
 
-      // 區塊外框：匯出時改為細白色實線
-      ctx.strokeStyle = isExporting ? '#FFFFFF' : '#333333';
-      ctx.lineWidth = isExporting ? 1.0 : 2.7;
+      ctx.strokeStyle = LINE_COLOR;
+      ctx.lineWidth = isExporting ? 1.2 : (2.7 / viewZoom);
       ctx.strokeRect(72, 45, 806, 428);
       ctx.strokeRect(72, 505, 1094, 398);
 
-      // 🎯 出血線處理：如果正在匯出，將原本的紅色虛線保留並轉成「很細的白色實線」；平時則顯示紅虛線或預覽效果
       if (isExporting) {
         ctx.save();
-        ctx.strokeStyle = '#FFFFFF';
-        ctx.lineWidth = 1.0;
-        // 上方組合的出血裁切框
+        ctx.strokeStyle = LINE_COLOR;
+        ctx.lineWidth = 1.2;
         ctx.strokeRect(86, 59, 778, 400);
         const cd = baseZones[2];
         ctx.beginPath();
         ctx.arc(cd.x + cd.w/2, cd.top + cd.h/2, 184, 0, Math.PI * 2);
         ctx.stroke();
-        // 下方組合的出血裁切框
+
         ctx.strokeRect(92, 521, 1054, 369);
         ctx.restore();
       } else if (previewFinished) {
@@ -522,19 +636,20 @@
         ctx.rect(92 + 1054, 521, -1054, 369);
         ctx.fill('evenodd');
 
-        ctx.strokeStyle = '#888888';
-        ctx.lineWidth = 1.5;
+        ctx.strokeStyle = LINE_COLOR;
+        ctx.lineWidth = 1.5 / viewZoom;
         ctx.strokeRect(86, 59, 778, 400);
         ctx.beginPath();
         ctx.arc(cd.x + cd.w/2, cd.top + cd.h/2, 184, 0, Math.PI * 2);
         ctx.stroke();
+
         ctx.strokeRect(92, 521, 1054, 369);
         ctx.restore();
       } else {
         ctx.save();
         ctx.strokeStyle = '#E53935'; 
-        ctx.lineWidth = 2.7;
-        ctx.setLineDash([9, 9]);     
+        ctx.lineWidth = 2.7 / viewZoom;
+        ctx.setLineDash([9 / viewZoom, 9 / viewZoom]);     
         ctx.strokeRect(86, 59, 778, 400);
         const cd = baseZones[2];
         ctx.beginPath();
@@ -550,7 +665,7 @@
           drawTransformControls(z);
         } else {
           ctx.strokeStyle = '#1890ff';
-          ctx.lineWidth = 3.5;
+          ctx.lineWidth = 3.5 / viewZoom;
           if (z.type === 'cd') {
             ctx.beginPath();
             ctx.arc(z.x + z.w/2, z.top + z.h/2, z.w/2, 0, Math.PI * 2);
@@ -560,7 +675,10 @@
           }
         }
         updateColorPickerUI();
+      } else {
+        updateColorPickerUI();
       }
+      ctx.restore();
     }
 
     function drawTransformControls(z) {
@@ -575,17 +693,17 @@
       ctx.rotate(z.imgData.angle * Math.PI / 180);
 
       ctx.strokeStyle = '#1890ff';
-      ctx.lineWidth = 2.7;
+      ctx.lineWidth = 2.7 / viewZoom;
       ctx.strokeRect(-w/2, -h/2, w, h);
 
       ctx.beginPath();
       ctx.moveTo(0, -h/2);
-      ctx.lineTo(0, -h/2 - 45);
+      ctx.lineTo(0, -h/2 - (45 / viewZoom));
       ctx.strokeStyle = '#1890ff';
       ctx.stroke();
 
       ctx.beginPath();
-      ctx.arc(0, -h/2 - 45, 12, 0, Math.PI * 2);
+      ctx.arc(0, -h/2 - (45 / viewZoom), 12 / viewZoom, 0, Math.PI * 2);
       ctx.fillStyle = '#1890ff';
       ctx.fill();
 
@@ -593,9 +711,9 @@
       handles.forEach(hCoord => {
         ctx.fillStyle = '#ffffff';
         ctx.strokeStyle = '#1890ff';
-        ctx.lineWidth = 2.7;
-        ctx.fillRect(hCoord.x - 9, hCoord.y - 9, 18, 18);
-        ctx.strokeRect(hCoord.x - 9, hCoord.y - 9, 18, 18);
+        ctx.lineWidth = 2.7 / viewZoom;
+        ctx.fillRect(hCoord.x - (9 / viewZoom), hCoord.y - (9 / viewZoom), 18 / viewZoom, 18 / viewZoom);
+        ctx.strokeRect(hCoord.x - (9 / viewZoom), hCoord.y - (9 / viewZoom), 18 / viewZoom, 18 / viewZoom);
       });
       ctx.restore();
     }
@@ -604,6 +722,9 @@
     let startX = 0, startY = 0;
     let initialScale = 1;
     let initialDist = 0;
+
+    let touchStartDist = 0;
+    let initialViewZoom = 1;
 
     function getTransformedHandleCoords(z) {
       const centerX = z.x + z.w/2 + z.imgData.offsetX;
@@ -628,15 +749,20 @@
       const rect = canvas.getBoundingClientRect();
       const clientX = e.touches ? e.touches[0].clientX : e.clientX;
       const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+      const rawX = (clientX - rect.left) * (DESIGN_WIDTH / rect.width);
+      const rawY = (clientY - rect.top) * (DESIGN_HEIGHT / rect.height);
+      
       return {
-        x: (clientX - rect.left) * (DESIGN_WIDTH / rect.width),
-        y: (clientY - rect.top) * (DESIGN_HEIGHT / rect.height)
+        x: (rawX - viewPanX) / viewZoom,
+        y: (rawY - viewPanY) / viewZoom
       };
     }
 
     function handleCanvasInteraction(e) {
+      if (e.touches && e.touches.length === 2) return;
+
       const { x, y } = getCanvasPos(e);
-      const hitThreshold = ('ontouchstart' in window) ? 45 : 25;
+      const hitThreshold = ('ontouchstart' in window) ? (45 / viewZoom) : (25 / viewZoom);
 
       if (selectedZoneIndex !== -1 && baseZones[selectedZoneIndex].img && baseZones[selectedZoneIndex].imgData) {
         const z = baseZones[selectedZoneIndex];
@@ -671,6 +797,11 @@
         }
       } else {
         selectedZoneIndex = -1;
+        activeMode = 'pan';
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        startX = clientX; 
+        startY = clientY;
       }
       render();
     }
@@ -700,8 +831,34 @@
     });
 
     function handleMove(e) {
-      if (selectedZoneIndex === -1 || !baseZones[selectedZoneIndex].img || !baseZones[selectedZoneIndex].imgData || !activeMode) return;
       if (e.cancelable) e.preventDefault();
+
+      if (e.touches && e.touches.length === 2) {
+        const dist = Math.hypot(
+          e.touches[0].clientX - e.touches[1].clientX,
+          e.touches[0].clientY - e.touches[1].clientY
+        );
+        if (touchStartDist > 0) {
+          viewZoom = Math.min(Math.max(1, initialViewZoom * (dist / touchStartDist)), 4);
+          render();
+        }
+        return;
+      }
+
+      if (!activeMode) return;
+
+      if (activeMode === 'pan') {
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        viewPanX += (clientX - startX);
+        viewPanY += (clientY - startY);
+        startX = clientX;
+        startY = clientY;
+        render();
+        return;
+      }
+
+      if (selectedZoneIndex === -1 || !baseZones[selectedZoneIndex].img || !baseZones[selectedZoneIndex].imgData) return;
 
       const z = baseZones[selectedZoneIndex];
       const centerX = z.x + z.w/2 + z.imgData.offsetX;
@@ -728,16 +885,29 @@
       render();
     }
 
-    function handleEnd() { activeMode = null; }
+    function handleStart(e) {
+      if (e.touches && e.touches.length === 2) {
+        touchStartDist = Math.hypot(
+          e.touches[0].clientX - e.touches[1].clientX,
+          e.touches[0].clientY - e.touches[1].clientY
+        );
+        initialViewZoom = viewZoom;
+        activeMode = null;
+        return;
+      }
+      handleCanvasInteraction(e);
+    }
+
+    function handleEnd() { 
+      activeMode = null; 
+      touchStartDist = 0;
+    }
 
     canvas.addEventListener('mousedown', handleCanvasInteraction);
     window.addEventListener('mousemove', handleMove);
     window.addEventListener('mouseup', handleEnd);
 
-    canvas.addEventListener('touchstart', (e) => {
-      handleCanvasInteraction(e);
-    }, { passive: false });
-
+    canvas.addEventListener('touchstart', handleStart, { passive: false });
     window.addEventListener('touchmove', handleMove, { passive: false });
     window.addEventListener('touchend', handleEnd);
 
@@ -753,19 +923,21 @@
     }
 
     canvas.addEventListener('wheel', (e) => {
+      e.preventDefault();
       if (selectedZoneIndex !== -1 && baseZones[selectedZoneIndex].img && baseZones[selectedZoneIndex].imgData) {
-        e.preventDefault();
         saveState();
         const z = baseZones[selectedZoneIndex];
         z.imgData.scale = Math.min(Math.max(0.05, z.imgData.scale * (e.deltaY < 0 ? 1.05 : 0.95)), 5);
-        render();
+      } else {
+        viewZoom = Math.min(Math.max(1, viewZoom * (e.deltaY < 0 ? 1.1 : 0.9)), 4);
       }
-    });
+      render();
+    }, { passive: false });
 
     function toggleBleedLines() { 
       previewFinished = !previewFinished; 
       const btn = document.getElementById('toggleBtn');
-      btn.innerText = previewFinished ? '👁️ 切換：顯示出血線' : '👁️ 切換：預覽成品效果';
+      btn.innerText = previewFinished ? '切換：顯示出血線' : '切換：預覽成品效果';
       render(); 
     }
     
@@ -788,35 +960,45 @@
       document.getElementById('passwordModal').style.display = 'none';
     }
 
+    function closePreviewModal() {
+      document.getElementById('previewModal').style.display = 'none';
+    }
+
+    let globalDataUrl = '';
+
     function verifyPassword() {
       const inputVal = document.getElementById('staffPassword').value;
       if (inputVal === '880526') {
         closePasswordModal();
-        downloadFinalImage(); 
+        generateFinalImageForPreview();
       } else {
         document.getElementById('errorMsg').style.display = 'block';
       }
     }
 
-    function downloadFinalImage() {
+    function generateFinalImageForPreview() {
       selectedZoneIndex = -1;
       render(true); 
 
-      const link = document.createElement('a');
-      link.download = '迷你CD專輯排版.png';
-      link.href = canvas.toDataURL('image/png', 1.0);
-      link.click();
+      globalDataUrl = canvas.toDataURL('image/png', 1.0);
+      document.getElementById('finalResultImg').src = globalDataUrl;
+      document.getElementById('previewModal').style.display = 'flex';
 
       render(false); 
     }
 
+    function downloadImageFile() {
+      const link = document.createElement('a');
+      link.download = '迷你CD專輯排版.png';
+      link.href = globalDataUrl;
+      link.click();
+    }
+
     window.addEventListener('load', () => {
       initCanvasSize();
-      render();
     });
     setTimeout(() => {
       initCanvasSize();
-      render();
     }, 100);
   </script>
 </body>
