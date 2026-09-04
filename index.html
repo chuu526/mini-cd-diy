@@ -109,7 +109,7 @@
       margin-bottom: 15px;
       overflow: hidden; 
       position: relative;
-      touch-action: auto; /* 允許瀏覽器正常處理手勢與縮放 */
+      touch-action: auto; 
       border: 2px solid #D4C3B3; 
       background: #FFFFFF; 
       box-shadow: 0 4px 12px rgba(0,0,0,0.08); 
@@ -218,30 +218,60 @@
       padding: 25px;
       border-radius: 12px;
       width: 90%;
-      max-width: 360px;
+      max-width: 420px;
       text-align: center;
       box-shadow: 0 6px 20px rgba(0,0,0,0.25);
     }
     .modal-content h3 { margin-top: 0; color: #4a3b32; font-size: 20px; }
-    .modal-content p { font-size: 14px; color: #555; line-height: 1.5; }
+    .modal-content p { font-size: 13px; color: #555; line-height: 1.5; margin-bottom: 15px; }
     
-    .password-input {
+    .preview-img-container {
       width: 100%;
-      padding: 12px;
-      font-size: 18px;
-      text-align: center;
-      letter-spacing: 3px;
-      border: 2px solid #D4C3B3;
+      max-height: 250px;
+      overflow: hidden;
+      border: 1px solid #D4C3B3;
       border-radius: 6px;
-      box-sizing: border-box;
-      margin: 15px 0;
-      outline: none;
+      margin-bottom: 15px;
+      background: #f9f9f9;
+      display: flex;
+      justify-content: center;
+      align-items: center;
     }
-    .password-input:focus { border-color: #9E7B66; }
-    .error-msg { color: #e53935; font-size: 13px; margin-bottom: 10px; display: none; }
+    .preview-img-container img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
 
-    .btn-modal-action { background: #9E7B66; color: white; padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 5px; }
-    .btn-modal-cancel { background: #dfcca6; color: #5c4033; padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 8px; }
+    .modal-btn-row {
+      display: flex;
+      gap: 10px;
+    }
+    .btn-modal-upload { 
+      background: #9E7B66; 
+      color: white; 
+      padding: 12px 15px; 
+      border: none; 
+      border-radius: 6px; 
+      cursor: pointer; 
+      font-weight: bold; 
+      flex: 1; 
+      font-size: 14px;
+    }
+    .btn-modal-upload:hover { background: #8b6a55; }
+
+    .btn-modal-close { 
+      background: #dfcca6; 
+      color: #5c4033; 
+      padding: 12px 15px; 
+      border: none; 
+      border-radius: 6px; 
+      cursor: pointer; 
+      font-weight: bold; 
+      flex: 1; 
+      font-size: 14px;
+    }
+    .btn-modal-close:hover { background: #d2bc94; }
 
     @media (max-width: 600px) {
       .header-area { flex-direction: column; gap: 10px; min-height: auto; padding-top: 45px; }
@@ -279,13 +309,13 @@
         <button class="preset-btn" onclick="setPresetColor('#FFFFFF')">純白底</button>
         <button class="preset-btn" onclick="setPresetColor('#FFFAF2')">米色底</button>
         <button class="preset-btn" onclick="setPresetColor('#FFF0F5')">淺粉底</button>
-        <button class="preset-btn" onclick="setPresetColor('#222222')">深色底</button>
+        <button class="preset-btn" onclick="setPresetColor('#E0F7FA')">淺藍底</button>
       </div>
     </div>
 
     <div class="controls">
       <button class="btn btn-toggle" id="toggleBtn" onclick="toggleBleedLines()">切換：預覽成品效果</button>
-      <button class="btn btn-checkout" onclick="openPasswordModal()">🎁 完成設計，傳送至店家</button>
+      <button class="btn btn-checkout" onclick="openPreviewModal()">🎁 完成設計，傳送至店家</button>
     </div>
 
     <div class="tip-box">
@@ -298,24 +328,25 @@
     </div>
   </div>
 
-  <!-- 密碼驗證視窗 -->
-  <div class="modal-overlay" id="passwordModal">
+  <div class="modal-overlay" id="previewModal">
     <div class="modal-content">
-      <h3>🔐 店員權限驗證</h3>
-      <p>請輸入解鎖密碼以將排版圖傳送給店員：</p>
+      <h3>🎉 您的迷你 CD 排版完成！</h3>
+      <p>請確認您的排版預覽圖，點擊左側按鈕即可直接傳送給店家製作！</p>
       
-      <input type="password" id="staffPassword" class="password-input" placeholder="請輸入密碼" maxlength="10">
-      <div class="error-msg" id="errorMsg">❌ 密碼錯誤，請重新輸入！</div>
+      <div class="preview-img-container">
+        <img id="modalPreviewImg" src="" alt="排版預覽圖">
+      </div>
 
-      <button class="btn-modal-action" onclick="verifyPassword()">確認並傳送檔案</button>
-      <button class="btn-modal-cancel" onclick="closePasswordModal()">取消</button>
+      <div class="modal-btn-row">
+        <button class="btn-modal-upload" onclick="confirmAndUpload()">直接上傳檔案</button>
+        <button class="btn-modal-close" onclick="closePreviewModal()">關閉視窗</button>
+      </div>
     </div>
   </div>
 
-  <!-- 傳送中或完成提示視窗 -->
   <div class="modal-overlay" id="statusModal">
     <div class="modal-content">
-      <h3 id="statusTitle">📤 正在傳送中...</h3>
+      <h3 id="statusTitle">📤 正在傳送至店家...</h3>
       <p id="statusDesc">正在將 1440x960 完整原尺寸高畫質檔案傳送到店家後端，請稍候片刻...</p>
     </div>
   </div>
@@ -326,8 +357,7 @@
     const DESIGN_WIDTH = 1440;
     const DESIGN_HEIGHT = 960;
 
-    // 請在這裡填入你的 Make Webhook 網址
-    const MAKE_WEBHOOK_URL = ''; 
+    const MAKE_WEBHOOK_URL = 'https://hook.eu1.make.com/9e4eiqnv1d4kxp2ge7oedkqguz9n1m92'; 
 
     const canvas = document.getElementById('diyCanvas');
     const wrapper = document.getElementById('canvasWrapper');
@@ -746,11 +776,6 @@
       ctx.restore();
     }
 
-    let activeMode = null; 
-    let startX = 0, startY = 0;
-    let initialScale = 1;
-    let initialDist = 0;
-
     function getTransformedHandleCoords(z) {
       let targetImg = z.img;
       let targetData = z.imgData;
@@ -795,6 +820,10 @@
       return { globalHandles, rotHandle };
     }
 
+    let activeMode = null;
+    let startX = 0, startY = 0;
+    let initialDist = 0, initialScale = 1;
+
     function getCanvasPos(e) {
       const rect = canvas.getBoundingClientRect();
       const clientX = e.touches ? e.touches[0].clientX : e.clientX;
@@ -809,7 +838,6 @@
     }
 
     function handleCanvasInteraction(e) {
-      // 關鍵：如果偵測到雙指（或以上），直接中斷，不搶事件，讓手機做頁面縮放！
       if (e.touches && e.touches.length > 1) return;
 
       const { x, y } = getCanvasPos(e);
@@ -939,7 +967,7 @@
     });
 
     function handleMove(e) {
-      if (e.touches && e.touches.length > 1) return; // 雙指時直接交還給手機縮放
+      if (e.touches && e.touches.length > 1) return; 
       if (!activeMode) return;
       if (e.cancelable) e.preventDefault();
 
@@ -1022,7 +1050,7 @@
     }
 
     function handleStart(e) {
-      if (e.touches && e.touches.length > 1) return; // 雙指直接放行
+      if (e.touches && e.touches.length > 1) return; 
       handleCanvasInteraction(e);
     }
 
@@ -1034,7 +1062,6 @@
     window.addEventListener('mousemove', handleMove);
     window.addEventListener('mouseup', handleEnd);
 
-    // 改用 passive: true 讓瀏覽器更順暢處理頁面滾動與縮放
     canvas.addEventListener('touchstart', handleStart, { passive: true });
     window.addEventListener('touchmove', handleMove, { passive: false });
     window.addEventListener('touchend', handleEnd);
@@ -1106,34 +1133,32 @@
       } 
     }
 
-    function openPasswordModal() {
-      document.getElementById('staffPassword').value = '';
-      document.getElementById('errorMsg').style.display = 'none';
-      document.getElementById('passwordModal').style.display = 'flex';
+    function openPreviewModal() {
+      selectedZoneIndex = -1;
+      render(true);
+
+      canvas.toBlob(function(blob) {
+        const url = URL.createObjectURL(blob);
+        document.getElementById('modalPreviewImg').src = url;
+        document.getElementById('previewModal').style.display = 'flex';
+        render(false);
+      }, 'image/png', 1.0);
     }
 
-    function closePasswordModal() {
-      document.getElementById('passwordModal').style.display = 'none';
+    function closePreviewModal() {
+      document.getElementById('previewModal').style.display = 'none';
     }
 
-    function verifyPassword() {
-      const inputVal = document.getElementById('staffPassword').value;
-      if (inputVal === '880526') {
-        closePasswordModal();
-        sendImageToWebhook();
-      } else {
-        document.getElementById('errorMsg').style.display = 'block';
-      }
-    }
+    function confirmAndUpload() {
+      closePreviewModal();
 
-    function sendImageToWebhook() {
       if (!MAKE_WEBHOOK_URL) {
-        alert('尚未設定 Make Webhook 網址，請先在程式碼中填入 MAKE_WEBHOOK_URL！');
+        alert('尚未設定 Make Webhook 網址！');
         return;
       }
 
       const statusModal = document.getElementById('statusModal');
-      document.getElementById('statusTitle').innerText = '📤 正在傳送中...';
+      document.getElementById('statusTitle').innerText = '📤 正在傳送至店家...';
       document.getElementById('statusDesc').innerText = '正在將 1440x960 完整原尺寸高畫質檔案傳送到店家後端，請稍候片刻...';
       statusModal.style.display = 'flex';
 
