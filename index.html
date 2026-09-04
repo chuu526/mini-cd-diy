@@ -73,7 +73,7 @@
     }
     .btn-history-icon:hover { background: #f2dec0; }
 
-    /* 紅色圓形白圖示垃圾桶按鈕樣式 (使用 #ff6347) */
+    /* 紅色圓形白圖示垃圾桶按鈕樣式 */
     .btn-trash-icon {
       background: #ff6347 !important;
       border: 1px solid #e05338 !important;
@@ -146,15 +146,12 @@
       border: 1px solid #D4C3B3;
     }
     
-    /* 更新切換預覽按鈕底色為 #deb887 */
     .btn-toggle { 
       background: #deb887; 
       color: #ffffff; 
       border-color: #cca677; 
     } 
-    .btn-toggle:hover {
-      background: #cea877;
-    }
+    .btn-toggle:hover { background: #cea877; }
 
     .btn-checkout { background: #9E7B66; color: #ffffff; border-color: #8b6a55; } 
 
@@ -295,7 +292,6 @@
         <button class="btn-history-icon" onclick="undoAction()" title="返回上一步">↶</button>
         <button class="btn-history-icon" onclick="redoAction()" title="重做下一步">↷</button>
         <button class="btn-trash-icon" id="trashBtn" onclick="clearSelectedZone()" title="清除選中照片" disabled>
-          <!-- SVG 白色垃圾桶圖示 -->
           <svg viewBox="0 0 24 24">
             <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
           </svg>
@@ -327,7 +323,8 @@
       <b>✂️ 操作說明：</b> 
       <ul>
         <li>點擊任一格子可上傳照片，並直接在下方切換該格子的獨立底色。</li>
-        <li>製作完成後，需要找店員解密下載！</li>
+        <li>書背 2 與封底內已合併為同一個大圖片上傳區塊。</li>
+        <li>封底內右側折邊已依厚度需求向內縮減 1mm。</li>
       </ul>
     </div>
   </div>
@@ -384,14 +381,15 @@
 
     const LINE_COLOR = '#E0E0E0';
 
+    // 封底內寬度原本為 518，此處縮小 4px (約1mm)，右邊界往左內縮 4px，foldLineX 也跟著內縮 4px
     let baseZones = [
       { id: '1.封面外', x: 72, top: 45, w: 403, h: 428, type: 'rect', labelMain: '封面外', labelSub: '+ 點擊上傳', img: null, bgColor: '#FFFFFF', imgData: null },
       { id: '2.封面內', x: 475, top: 45, w: 403, h: 428, type: 'rect', labelMain: '封面內', labelSub: '+ 點擊上傳', img: null, bgColor: '#FFFFFF', imgData: null },
       { id: '3.CD光碟', x: 963, top: 65, w: 389, h: 389, type: 'cd', labelMain: 'CD 封面', labelSub: '+ 點擊上傳', img: null, bgColor: '#FFFFFF', imgData: null },
       { id: '4.封底外(含折邊)', x: 72, top: 505, w: 518, h: 398, type: 'rect', labelMain: '封底外', labelSub: '(含左折邊) + 點擊上傳', foldLineX: 126, img: null, bgColor: '#FFFFFF', imgData: null },
       { id: '5.書背1', x: 590, top: 505, w: 29, h: 398, type: 'rect', isSpine: true, labelSpine: '書背1', img: null, bgColor: '#FFFFFF', imgData: null },
-      { id: '6.書背2', x: 619, top: 505, w: 29, h: 398, type: 'rect', isSpine: true, labelSpine: '書背2', img: null, bgColor: '#FFFFFF', imgData: null },
-      { id: '7.封底內(含折邊)', x: 648, top: 505, w: 518, h: 398, type: 'rect', labelMain: '封底內', labelSub: '(含右折邊) + 點擊上傳', foldLineX: 1112, img: null, bgColor: '#FFFFFF', imgData: null }
+      { id: '6.書背2', x: 619, top: 505, w: 29, h: 398, type: 'rect', isSpine: true, labelSpine: '', groupId: 'spine2_inner_back', img: null, bgColor: '#FFFFFF', imgData: null },
+      { id: '7.封底內(含折邊)', x: 648, top: 505, w: 514, h: 398, type: 'rect', labelMain: '封底內', labelSub: '(含右折邊) + 點擊上傳', foldLineX: 1108, groupId: 'spine2_inner_back', img: null, bgColor: '#FFFFFF', imgData: null }
     ];
 
     let undoStack = [];
@@ -448,7 +446,7 @@
         imgData: z.imgData ? { ...z.imgData } : null
       }));
       undoStack.push(currentState);
-      restoreState(redoStack.pop());
+      restoreState(undoStack.pop());
     }
 
     window.addEventListener('keydown', (e) => {
@@ -479,11 +477,16 @@
 
     function changeSelectedZoneBgColor(color) {
       if (selectedZoneIndex !== -1) {
-        if (baseZones[selectedZoneIndex].bgColor !== color) {
-          saveState();
-          baseZones[selectedZoneIndex].bgColor = color;
-          render();
-        }
+        const targetZone = baseZones[selectedZoneIndex];
+        const targetGroupId = targetZone.groupId;
+
+        baseZones.forEach(z => {
+          if (z === targetZone || (targetGroupId && z.groupId === targetGroupId)) {
+            z.bgColor = color;
+          }
+        });
+        saveState();
+        render();
       }
     }
 
@@ -499,11 +502,13 @@
       const picker = document.getElementById('zoneBgColorPicker');
       if (selectedZoneIndex !== -1) {
         const z = baseZones[selectedZoneIndex];
-        label.innerHTML = `🎨 設定【${z.id.replace(/^\d+\./, '')}】格子底色：`;
+        const displayName = z.groupId ? '書背 2 與封底內 (合併區)' : z.id.replace(/^\d+\./, '');
+        label.innerHTML = `🎨 設定【${displayName}】格子底色：`;
         picker.value = z.bgColor;
         picker.disabled = false;
 
-        if (z.img) {
+        const hasImg = baseZones.some(item => item.img && (item === z || (z.groupId && item.groupId === z.groupId)));
+        if (hasImg) {
           trashBtn.disabled = false;
         } else {
           trashBtn.disabled = true;
@@ -546,16 +551,37 @@
         ctx.fillStyle = z.bgColor;
         ctx.fill();
 
-        if (z.img && z.imgData) {
+        let targetImgObj = z.img;
+        let targetImgDataObj = z.imgData;
+        if (!targetImgObj && z.groupId) {
+          const groupPartner = baseZones.find(item => item.groupId === z.groupId && item.img);
+          if (groupPartner) {
+            targetImgObj = groupPartner.img;
+            targetImgDataObj = groupPartner.imgData;
+          }
+        }
+
+        if (targetImgObj && targetImgDataObj) {
           ctx.save();
-          const centerX = z.x + z.w/2 + (z.imgData.offsetX || 0);
-          const centerY = z.top + z.h/2 + (z.imgData.offsetY || 0);
+          let centerX, centerY;
+          if (z.groupId) {
+            const groupMembers = baseZones.filter(item => item.groupId === z.groupId);
+            const minX = Math.min(...groupMembers.map(m => m.x));
+            const maxX = Math.max(...groupMembers.map(m => m.x + m.w));
+            const minY = Math.min(...groupMembers.map(m => m.top));
+            const maxY = Math.max(...groupMembers.map(m => m.top + m.h));
+            centerX = (minX + maxX) / 2 + (targetImgDataObj.offsetX || 0);
+            centerY = (minY + maxY) / 2 + (targetImgDataObj.offsetY || 0);
+          } else {
+            centerX = z.x + z.w/2 + (targetImgDataObj.offsetX || 0);
+            centerY = z.top + z.h/2 + (targetImgDataObj.offsetY || 0);
+          }
           
           ctx.translate(centerX, centerY);
-          ctx.rotate((z.imgData.angle || 0) * Math.PI / 180);
-          ctx.scale(z.imgData.scale || 1, z.imgData.scale || 1);
+          ctx.rotate((targetImgDataObj.angle || 0) * Math.PI / 180);
+          ctx.scale(targetImgDataObj.scale || 1, targetImgDataObj.scale || 1);
           
-          ctx.drawImage(z.img, -z.img.width/2, -z.img.height/2);
+          ctx.drawImage(targetImgObj, -targetImgObj.width/2, -targetImgObj.height/2);
           ctx.restore();
         } else if (!isExporting) {
           ctx.fillStyle = z.isSpine ? '#8C7B6B' : '#5C4A3E';
@@ -563,12 +589,14 @@
           ctx.textBaseline = 'middle';
 
           if (z.isSpine) {
-            ctx.save();
-            ctx.translate(z.x + z.w/2, z.top + z.h/2);
-            ctx.rotate(-Math.PI / 2);
-            ctx.font = 'bold 20px sans-serif';
-            ctx.fillText(z.labelSpine, 0, 0);
-            ctx.restore();
+            if (z.labelSpine) {
+              ctx.save();
+              ctx.translate(z.x + z.w/2, z.top + z.h/2);
+              ctx.rotate(-Math.PI / 2);
+              ctx.font = 'bold 20px sans-serif';
+              ctx.fillText(z.labelSpine, 0, 0);
+              ctx.restore();
+            }
           } else {
             ctx.font = 'bold 27px sans-serif';
             ctx.fillText(z.labelMain, z.x + z.w/2, z.top + z.h/2 - 18);
@@ -611,7 +639,8 @@
       ctx.strokeStyle = LINE_COLOR;
       ctx.lineWidth = isExporting ? 1.2 : (2.7 / viewZoom);
       ctx.strokeRect(72, 45, 806, 428);
-      ctx.strokeRect(72, 505, 1094, 398);
+      // 下排總寬度配合封底內縮減4px，總寬從 1094 調整為 1090
+      ctx.strokeRect(72, 505, 1090, 398);
 
       if (isExporting) {
         ctx.save();
@@ -623,7 +652,7 @@
         ctx.arc(cd.x + cd.w/2, cd.top + cd.h/2, 184, 0, Math.PI * 2);
         ctx.stroke();
 
-        ctx.strokeRect(92, 521, 1054, 369);
+        ctx.strokeRect(92, 521, 1050, 369);
         ctx.restore();
       } else if (previewFinished) {
         ctx.save();
@@ -633,7 +662,7 @@
         ctx.rect(86 + 778, 59, -778, 400);
         const cd = baseZones[2];
         ctx.arc(cd.x + cd.w/2, cd.top + cd.h/2, 184, 0, Math.PI * 2, true);
-        ctx.rect(92 + 1054, 521, -1054, 369);
+        ctx.rect(92 + 1050, 521, -1050, 369);
         ctx.fill('evenodd');
 
         ctx.strokeStyle = LINE_COLOR;
@@ -643,7 +672,7 @@
         ctx.arc(cd.x + cd.w/2, cd.top + cd.h/2, 184, 0, Math.PI * 2);
         ctx.stroke();
 
-        ctx.strokeRect(92, 521, 1054, 369);
+        ctx.strokeRect(92, 521, 1050, 369);
         ctx.restore();
       } else {
         ctx.save();
@@ -655,18 +684,31 @@
         ctx.beginPath();
         ctx.arc(cd.x + cd.w/2, cd.top + cd.h/2, 184, 0, Math.PI * 2);
         ctx.stroke();
-        ctx.strokeRect(92, 521, 1054, 369);
+        ctx.strokeRect(92, 521, 1050, 369);
         ctx.restore();
       }
 
       if (!isExporting && selectedZoneIndex !== -1) {
         const z = baseZones[selectedZoneIndex];
-        if (z.img && z.imgData) {
+        let hasActiveImg = z.img && z.imgData;
+        if (!hasActiveImg && z.groupId) {
+          const partner = baseZones.find(item => item.groupId === z.groupId && item.img);
+          if (partner) hasActiveImg = true;
+        }
+
+        if (hasActiveImg) {
           drawTransformControls(z);
         } else {
           ctx.strokeStyle = '#1890ff';
           ctx.lineWidth = 3.5 / viewZoom;
-          if (z.type === 'cd') {
+          if (z.groupId) {
+            const groupMembers = baseZones.filter(item => item.groupId === z.groupId);
+            const minX = Math.min(...groupMembers.map(m => m.x));
+            const maxX = Math.max(...groupMembers.map(m => m.x + m.w));
+            const minY = Math.min(...groupMembers.map(m => m.top));
+            const maxY = Math.max(...groupMembers.map(m => m.top + m.h));
+            ctx.strokeRect(minX, minY, maxX - minX, maxY - minY);
+          } else if (z.type === 'cd') {
             ctx.beginPath();
             ctx.arc(z.x + z.w/2, z.top + z.h/2, z.w/2, 0, Math.PI * 2);
             ctx.stroke();
@@ -682,15 +724,40 @@
     }
 
     function drawTransformControls(z) {
-      if (!z.imgData) return;
-      const centerX = z.x + z.w/2 + z.imgData.offsetX;
-      const centerY = z.top + z.h/2 + z.imgData.offsetY;
-      const w = z.img.width * z.imgData.scale;
-      const h = z.img.height * z.imgData.scale;
+      let targetImg = z.img;
+      let targetData = z.imgData;
+      let targetZoneForCenter = z;
+
+      if (!targetImg && z.groupId) {
+        const partner = baseZones.find(item => item.groupId === z.groupId && item.img);
+        if (partner) {
+          targetImg = partner.img;
+          targetData = partner.imgData;
+          targetZoneForCenter = partner;
+        }
+      }
+      if (!targetData) return;
+
+      let centerX, centerY;
+      if (z.groupId) {
+        const groupMembers = baseZones.filter(item => item.groupId === z.groupId);
+        const minX = Math.min(...groupMembers.map(m => m.x));
+        const maxX = Math.max(...groupMembers.map(m => m.x + m.w));
+        const minY = Math.min(...groupMembers.map(m => m.top));
+        const maxY = Math.max(...groupMembers.map(m => m.top + m.h));
+        centerX = (minX + maxX) / 2 + targetData.offsetX;
+        centerY = (minY + maxY) / 2 + targetData.offsetY;
+      } else {
+        centerX = targetZoneForCenter.x + targetZoneForCenter.w/2 + targetData.offsetX;
+        centerY = targetZoneForCenter.top + targetZoneForCenter.h/2 + targetData.offsetY;
+      }
+
+      const w = targetImg.width * targetData.scale;
+      const h = targetImg.height * targetData.scale;
 
       ctx.save();
       ctx.translate(centerX, centerY);
-      ctx.rotate(z.imgData.angle * Math.PI / 180);
+      ctx.rotate(targetData.angle * Math.PI / 180);
 
       ctx.strokeStyle = '#1890ff';
       ctx.lineWidth = 2.7 / viewZoom;
@@ -722,16 +789,40 @@
     let startX = 0, startY = 0;
     let initialScale = 1;
     let initialDist = 0;
-
     let touchStartDist = 0;
     let initialViewZoom = 1;
 
     function getTransformedHandleCoords(z) {
-      const centerX = z.x + z.w/2 + z.imgData.offsetX;
-      const centerY = z.top + z.h/2 + z.imgData.offsetY;
-      const w = z.img.width * z.imgData.scale;
-      const h = z.img.height * z.imgData.scale;
-      const rad = z.imgData.angle * Math.PI / 180;
+      let targetImg = z.img;
+      let targetData = z.imgData;
+      let targetZoneForCenter = z;
+
+      if (!targetImg && z.groupId) {
+        const partner = baseZones.find(item => item.groupId === z.groupId && item.img);
+        if (partner) {
+          targetImg = partner.img;
+          targetData = partner.imgData;
+          targetZoneForCenter = partner;
+        }
+      }
+
+      let centerX, centerY;
+      if (z.groupId) {
+        const groupMembers = baseZones.filter(item => item.groupId === z.groupId);
+        const minX = Math.min(...groupMembers.map(m => m.x));
+        const maxX = Math.max(...groupMembers.map(m => m.x + m.w));
+        const minY = Math.min(...groupMembers.map(m => m.top));
+        const maxY = Math.max(...groupMembers.map(m => m.top + m.h));
+        centerX = (minX + maxX) / 2 + targetData.offsetX;
+        centerY = (minY + maxY) / 2 + targetData.offsetY;
+      } else {
+        centerX = targetZoneForCenter.x + targetZoneForCenter.w/2 + targetData.offsetX;
+        centerY = targetZoneForCenter.top + targetZoneForCenter.h/2 + targetData.offsetY;
+      }
+
+      const w = targetImg.width * targetData.scale;
+      const h = targetImg.height * targetData.scale;
+      const rad = targetData.angle * Math.PI / 180;
 
       const localHandles = [{ x: -w/2, y: -h/2 }, { x: w/2, y: -h/2 }, { x: -w/2, y: h/2 }, { x: w/2, y: h/2 }];
       const globalHandles = localHandles.map(lh => ({
@@ -764,23 +855,53 @@
       const { x, y } = getCanvasPos(e);
       const hitThreshold = ('ontouchstart' in window) ? (45 / viewZoom) : (25 / viewZoom);
 
-      if (selectedZoneIndex !== -1 && baseZones[selectedZoneIndex].img && baseZones[selectedZoneIndex].imgData) {
+      if (selectedZoneIndex !== -1) {
         const z = baseZones[selectedZoneIndex];
-        const { globalHandles, rotHandle } = getTransformedHandleCoords(z);
-
-        if (Math.hypot(x - rotHandle.x, y - rotHandle.y) <= hitThreshold) {
-          saveState();
-          activeMode = 'rotate'; startX = x; startY = y; return;
+        let hasActiveImg = z.img && z.imgData;
+        if (!hasActiveImg && z.groupId) {
+          const partner = baseZones.find(item => item.groupId === z.groupId && item.img);
+          if (partner) hasActiveImg = true;
         }
 
-        for (let handle of globalHandles) {
-          if (Math.hypot(x - handle.x, y - handle.y) <= hitThreshold) {
+        if (hasActiveImg) {
+          const { globalHandles, rotHandle } = getTransformedHandleCoords(z);
+
+          if (Math.hypot(x - rotHandle.x, y - rotHandle.y) <= hitThreshold) {
             saveState();
-            activeMode = 'scale'; startX = x; startY = y; initialScale = z.imgData.scale;
-            const centerX = z.x + z.w/2 + z.imgData.offsetX;
-            const centerY = z.top + z.h/2 + z.imgData.offsetY;
-            initialDist = Math.hypot(x - centerX, y - centerY);
-            return;
+            activeMode = 'rotate'; startX = x; startY = y; return;
+          }
+
+          for (let handle of globalHandles) {
+            if (Math.hypot(x - handle.x, y - handle.y) <= hitThreshold) {
+              saveState();
+              activeMode = 'scale'; startX = x; startY = y; 
+              let targetData = z.imgData;
+              let targetZoneForCenter = z;
+              if (!targetData && z.groupId) {
+                const partner = baseZones.find(item => item.groupId === z.groupId && item.img);
+                if (partner) {
+                  targetData = partner.imgData;
+                  targetZoneForCenter = partner;
+                }
+              }
+              initialScale = targetData.scale;
+              
+              let centerX, centerY;
+              if (z.groupId) {
+                const groupMembers = baseZones.filter(item => item.groupId === z.groupId);
+                const minX = Math.min(...groupMembers.map(m => m.x));
+                const maxX = Math.max(...groupMembers.map(m => m.x + m.w));
+                const minY = Math.min(...groupMembers.map(m => m.top));
+                const maxY = Math.max(...groupMembers.map(m => m.top + m.h));
+                centerX = (minX + maxX) / 2 + targetData.offsetX;
+                centerY = (minY + maxY) / 2 + targetData.offsetY;
+              } else {
+                centerX = targetZoneForCenter.x + targetZoneForCenter.w/2 + targetData.offsetX;
+                centerY = targetZoneForCenter.top + targetZoneForCenter.h/2 + targetData.offsetY;
+              }
+              initialDist = Math.hypot(x - centerX, y - centerY);
+              return;
+            }
           }
         }
       }
@@ -788,7 +909,14 @@
       const hitIndex = getHitZone(x, y);
       if (hitIndex !== -1) {
         selectedZoneIndex = hitIndex;
-        if (!baseZones[hitIndex].img) {
+        const clickedZone = baseZones[hitIndex];
+        let checkHasImg = clickedZone.img;
+        if (!checkHasImg && clickedZone.groupId) {
+          const partner = baseZones.find(item => item.groupId === clickedZone.groupId && item.img);
+          if (partner) checkHasImg = partner.img;
+        }
+
+        if (!checkHasImg) {
           globalFileInput.value = '';
           globalFileInput.click();
         } else {
@@ -816,13 +944,33 @@
         img.onload = function() {
           saveState();
           const z = baseZones[selectedZoneIndex];
-          z.img = img;
-          z.imgData = { 
-            offsetX: 0, 
-            offsetY: 0, 
-            scale: Math.max(z.w / img.width, z.h / img.height), 
-            angle: 0 
-          };
+          const sharedGroupId = z.groupId;
+
+          let defaultScale;
+          if (sharedGroupId) {
+            const groupMembers = baseZones.filter(item => item.groupId === sharedGroupId);
+            const minX = Math.min(...groupMembers.map(m => m.x));
+            const maxX = Math.max(...groupMembers.map(m => m.x + m.w));
+            const minY = Math.min(...groupMembers.map(m => m.top));
+            const maxY = Math.max(...groupMembers.map(m => m.top + m.h));
+            const groupW = maxX - minX;
+            const groupH = maxY - minY;
+            defaultScale = Math.max(groupW / img.width, groupH / img.height);
+          } else {
+            defaultScale = Math.max(z.w / img.width, z.h / img.height);
+          }
+
+          baseZones.forEach(item => {
+            if (item === z || (sharedGroupId && item.groupId === sharedGroupId)) {
+              item.img = img;
+              item.imgData = { 
+                offsetX: 0, 
+                offsetY: 0, 
+                scale: defaultScale, 
+                angle: 0 
+              };
+            }
+          });
           render();
         };
         img.src = event.target.result;
@@ -858,21 +1006,57 @@
         return;
       }
 
-      if (selectedZoneIndex === -1 || !baseZones[selectedZoneIndex].img || !baseZones[selectedZoneIndex].imgData) return;
-
+      if (selectedZoneIndex === -1) return;
       const z = baseZones[selectedZoneIndex];
-      const centerX = z.x + z.w/2 + z.imgData.offsetX;
-      const centerY = z.top + z.h/2 + z.imgData.offsetY;
+      let targetData = z.imgData;
+      let targetZoneForCenter = z;
+      let sharedGroupId = z.groupId;
+
+      if (!targetData && z.groupId) {
+        const partner = baseZones.find(item => item.groupId === z.groupId && item.img);
+        if (partner) {
+          targetData = partner.imgData;
+          targetZoneForCenter = partner;
+        }
+      }
+      if (!targetData) return;
+
+      let centerX, centerY;
+      if (sharedGroupId) {
+        const groupMembers = baseZones.filter(item => item.groupId === sharedGroupId);
+        const minX = Math.min(...groupMembers.map(m => m.x));
+        const maxX = Math.max(...groupMembers.map(m => m.x + m.w));
+        const minY = Math.min(...groupMembers.map(m => m.top));
+        const maxY = Math.max(...groupMembers.map(m => m.top + m.h));
+        centerX = (minX + maxX) / 2 + targetData.offsetX;
+        centerY = (minY + maxY) / 2 + targetData.offsetY;
+      } else {
+        centerX = targetZoneForCenter.x + targetZoneForCenter.w/2 + targetData.offsetX;
+        centerY = targetZoneForCenter.top + targetZoneForCenter.h/2 + targetData.offsetY;
+      }
+
       const { x, y } = getCanvasPos(e);
 
       if (activeMode === 'move') {
-        z.imgData.offsetX += (x - startX);
-        z.imgData.offsetY += (y - startY);
+        const dx = x - startX;
+        const dy = y - startY;
+        
+        baseZones.forEach(item => {
+          if (item.imgData && (item === z || (sharedGroupId && item.groupId === sharedGroupId))) {
+            item.imgData.offsetX += dx;
+            item.imgData.offsetY += dy;
+          }
+        });
         startX = x; startY = y;
       } else if (activeMode === 'scale') {
         const currentDist = Math.hypot(x - centerX, y - centerY);
         if (initialDist > 0) {
-          z.imgData.scale = Math.min(Math.max(0.05, initialScale * (currentDist / initialDist)), 5);
+          const newScale = Math.min(Math.max(0.05, initialScale * (currentDist / initialDist)), 5);
+          baseZones.forEach(item => {
+            if (item.imgData && (item === z || (sharedGroupId && item.groupId === sharedGroupId))) {
+              item.imgData.scale = newScale;
+            }
+          });
         }
       } else if (activeMode === 'rotate') {
         let angle = Math.atan2(y - centerY, x - centerX) * (180 / Math.PI) + 90;
@@ -880,7 +1064,11 @@
         [0, 90, 180, 270, 360].forEach(target => {
           if (Math.abs(angle - target) < 6) angle = target % 360;
         });
-        z.imgData.angle = angle;
+        baseZones.forEach(item => {
+          if (item.imgData && (item === z || (sharedGroupId && item.groupId === sharedGroupId))) {
+            item.imgData.angle = angle;
+          }
+        });
       }
       render();
     }
@@ -924,10 +1112,24 @@
 
     canvas.addEventListener('wheel', (e) => {
       e.preventDefault();
-      if (selectedZoneIndex !== -1 && baseZones[selectedZoneIndex].img && baseZones[selectedZoneIndex].imgData) {
-        saveState();
+      if (selectedZoneIndex !== -1) {
         const z = baseZones[selectedZoneIndex];
-        z.imgData.scale = Math.min(Math.max(0.05, z.imgData.scale * (e.deltaY < 0 ? 1.05 : 0.95)), 5);
+        let targetData = z.imgData;
+        let sharedGroupId = z.groupId;
+        if (!targetData && z.groupId) {
+          const partner = baseZones.find(item => item.groupId === z.groupId && item.img);
+          if (partner) targetData = partner.imgData;
+        }
+
+        if (targetData) {
+          saveState();
+          const newScale = Math.min(Math.max(0.05, targetData.scale * (e.deltaY < 0 ? 1.05 : 0.95)), 5);
+          baseZones.forEach(item => {
+            if (item.imgData && (item === z || (sharedGroupId && item.groupId === sharedGroupId))) {
+              item.imgData.scale = newScale;
+            }
+          });
+        }
       } else {
         viewZoom = Math.min(Math.max(1, viewZoom * (e.deltaY < 0 ? 1.1 : 0.9)), 4);
       }
@@ -942,11 +1144,25 @@
     }
     
     function clearSelectedZone() { 
-      if (selectedZoneIndex !== -1 && baseZones[selectedZoneIndex].img) {
-        saveState();
-        baseZones[selectedZoneIndex].img = null;
-        baseZones[selectedZoneIndex].imgData = null;
-        render(); 
+      if (selectedZoneIndex !== -1) {
+        const z = baseZones[selectedZoneIndex];
+        const sharedGroupId = z.groupId;
+        let hasImg = z.img;
+        if (!hasImg && sharedGroupId) {
+          const partner = baseZones.find(item => item.groupId === sharedGroupId && item.img);
+          if (partner) hasImg = partner.img;
+        }
+
+        if (hasImg) {
+          saveState();
+          baseZones.forEach(item => {
+            if (item === z || (sharedGroupId && item.groupId === sharedGroupId)) {
+              item.img = null;
+              item.imgData = null;
+            }
+          });
+          render(); 
+        }
       } 
     }
 
