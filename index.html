@@ -3,40 +3,38 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>迷你 CD 專輯 DIY</title>
+  <title>迷你 CD 專輯 DIY - 櫃檯結帳版</title>
+
   <style>
     body { 
       font-family: sans-serif; 
       display: flex; 
       flex-direction: column; 
       align-items: center; 
-      padding: 15px; 
+      padding: 15px 15px 30px 15px; 
       background: #FFFAF2; 
       margin: 0; 
       box-sizing: border-box;
     }
 
-    /* 限制整體內容寬度，讓 LOGO 可以精準對齊主畫布左側 */
     .main-container {
       width: 100%;
-      max-width: 780px;
+      max-width: 800px;
       display: flex;
       flex-direction: column;
       align-items: center;
     }
 
-    /* 頂部區域：將 LOGO 與標題放置在同一區域內 */
     .header-area {
       width: 100%;
       position: relative;
       display: flex;
       justify-content: center;
       align-items: center;
-      margin-bottom: 15px;
+      margin-bottom: 12px;
       min-height: 50px;
     }
 
-    /* LOGO 置於容器左側 */
     .top-left-logo {
       position: absolute;
       left: 0;
@@ -52,27 +50,100 @@
       color: #4a3b32; 
     }
 
-    .canvas-wrapper { width: 100%; max-width: 780px; display: flex; justify-content: center; }
+    .canvas-wrapper { 
+      width: 100%; 
+      max-width: 800px; 
+      display: flex; 
+      justify-content: center; 
+      margin-bottom: 15px; 
+    }
+
     canvas { 
       width: 100%; 
       height: auto; 
-      max-width: 780px;
+      max-width: 800px;
       border: 2px solid #D4C3B3; 
-      background: #FFFAF2; 
+      background: #FFFFFF; 
       box-shadow: 0 4px 12px rgba(0,0,0,0.08); 
       border-radius: 8px; 
       cursor: pointer; 
       touch-action: none;
     }
-    .controls { margin-top: 15px; display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; width: 100%; max-width: 780px; }
-    .btn { padding: 12px 18px; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: bold; flex: 1; min-width: 140px; text-align: center; }
+
+    .controls { 
+      display: flex; 
+      gap: 10px; 
+      flex-wrap: wrap; 
+      justify-content: center; 
+      width: 100%; 
+      max-width: 800px; 
+      margin-bottom: 12px;
+    }
+
+    .btn { 
+      padding: 12px 18px; 
+      border: none; 
+      border-radius: 6px; 
+      cursor: pointer; 
+      font-size: 14px; 
+      font-weight: bold; 
+      flex: 1; 
+      min-width: 140px; 
+      text-align: center; 
+    }
     
     .btn-toggle { background: #b89b88; color: #ffffff; } 
     .btn-delete { background: #dfcca6; color: #5c4033; } 
-    .btn-export { background: #9a7b68; color: #ffffff; } 
+    .btn-checkout { background: #9E7B66; color: #ffffff; } 
 
-    .tip-box { margin-top: 12px; background: #fffbe6; border: 1px solid #ffe58f; padding: 10px 16px; border-radius: 6px; font-size: 13px; color: #d48800; width: 100%; max-width: 780px; box-sizing: border-box; }
+    .tip-box { 
+      background: #fffbe6; 
+      border: 1px solid #ffe58f; 
+      padding: 10px 16px; 
+      border-radius: 6px; 
+      font-size: 13px; 
+      color: #d48800; 
+      width: 100%; 
+      max-width: 800px; 
+      box-sizing: border-box; 
+    }
     .tip-box ul { margin: 5px 0 0 18px; padding: 0; }
+
+    /* 結帳提示彈窗樣式 */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.6);
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+    .modal-content {
+      background: #ffffff;
+      padding: 25px;
+      border-radius: 12px;
+      width: 90%;
+      max-width: 360px;
+      text-align: center;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+    }
+    .modal-content h3 { margin-top: 0; color: #4a3b32; font-size: 20px; }
+    .modal-content p { font-size: 14px; color: #555; line-height: 1.5; }
+    .qr-placeholder {
+      width: 160px;
+      height: 160px;
+      background: #f0f0f0;
+      border: 2px dashed #ccc;
+      margin: 15px auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #888;
+      font-size: 13px;
+      border-radius: 8px;
+    }
+    .btn-close-modal { background: #9E7B66; color: white; padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 10px; }
 
     @media (max-width: 600px) {
       .header-area {
@@ -95,62 +166,70 @@
     </div>
 
     <div class="canvas-wrapper">
-      <canvas id="diyCanvas" width="780" height="520"></canvas>
+      <canvas id="diyCanvas" width="1440" height="960"></canvas>
     </div>
     <input type="file" id="hiddenFileInput" accept="image/*" style="display:none;" onchange="handleFileSelect(event)">
 
     <div class="controls">
       <button class="btn btn-toggle" onclick="toggleBleedLines()">👁️ 開啟/隱藏出血線</button>
       <button class="btn btn-delete" onclick="clearSelectedZone()">清除選中照片</button>
-      <button class="btn btn-export" onclick="exportImage()">完成排版並下載 (JPG)</button>
+      <button class="btn btn-checkout" onclick="openCheckoutModal()">🎁 完成設計，前往櫃檯結帳</button>
     </div>
 
     <div class="tip-box">
-      <b>✂️ 操作提示：</b> 
+      <b>✂️ 操作說明：</b> 
       <ul>
-        <li>點擊／觸控空白格子：上傳照片。</li>
-        <li>拖曳照片中心：調整移動位置。</li>
-        <li>拖曳<b>四角端點</b>：縮放照片大小（或滾輪/雙指縮放）。</li>
-        <li>拖曳<b>頂端藍色圓點</b>：旋轉照片（接近 0°、90°、180°、270° 自動對齊）。</li>
+        <li>點擊空白格子自由上傳、移動、縮放與旋轉您的照片。</li>
+        <li>排版完成後，請點擊下方的<b>「完成設計，前往櫃檯結帳」</b>。</li>
       </ul>
     </div>
   </div>
 
+  <div class="modal-overlay" id="checkoutModal">
+    <div class="modal-content">
+      <h3>🎉 排版大功告成！</h3>
+      <p>請將此畫面出示給櫃檯店員，或掃描下方官方帳號完成結帳，店員將立刻為您列印輸出 1440x960 高畫質專輯！</p>
+      
+      <div class="qr-placeholder">
+        [ 請在此放入您的 LINE QR Code ]
+      </div>
+
+      <button class="btn-close-modal" onclick="closeCheckoutModal()">我知道了，返回修改</button>
+    </div>
+  </div>
+
   <script>
-    const CANVAS_WIDTH = 780;
-    const CANVAS_HEIGHT = 520;
+    const CANVAS_WIDTH = 1440;
+    const CANVAS_HEIGHT = 960;
     const canvas = document.getElementById('diyCanvas');
     const ctx = canvas.getContext('2d');
 
     let showBleed = true;
     let selectedZoneIndex = -1;
 
+    // 將內部區塊適度往上移，讓底部留白增加
     const zones = [
-      { id: '1.封面外', x: 20,  top: 20, w: 235, h: 220, type: 'rect', labelMain: '封面外', labelSub: '+ 點擊上傳', img: null },
-      { id: '2.封面內', x: 255, top: 20, w: 235, h: 220, type: 'rect', labelMain: '封面內', labelSub: '+ 點擊上傳', img: null },
-      { id: '3.CD光碟圓形', x: 510, top: 20, w: 220, h: 220, type: 'circle', labelMain: 'CD 封面', labelSub: '+ 點擊上傳', img: null },
-      { id: '4.封底外', x: 20,  top: 260, w: 220, h: 220, type: 'rect', labelMain: '封底外', labelSub: '+ 點擊上傳', img: null },
-      { id: '5.中間書背1', x: 240, top: 260, w: 15, h: 220, type: 'rect', isSpine: true, labelSpine: '書背1', img: null },
-      { id: '6.中間書背2', x: 255, top: 260, w: 15, h: 220, type: 'rect', isSpine: true, labelSpine: '書背2', img: null },
-      { id: '7.封底內', x: 270, top: 260, w: 220, h: 220, type: 'rect', labelMain: '封底內', labelSub: '+ 點擊上傳', img: null }
+      { id: '1.封面外', x: 72, top: 45, w: 403, h: 428, type: 'rect', labelMain: '封面外', labelSub: '+ 點擊上傳', img: null },
+      { id: '2.封面內', x: 475, top: 45, w: 403, h: 428, type: 'rect', labelMain: '封面內', labelSub: '+ 點擊上傳', img: null },
+      { id: '3.CD光碟', x: 963, top: 65, w: 389, h: 389, type: 'cd', labelMain: 'CD 封面', labelSub: '+ 點擊上傳', img: null },
+      { id: '4.封底外(含折邊)', x: 72, top: 505, w: 518, h: 398, type: 'rect', labelMain: '封底外', labelSub: '(含左折邊) + 點擊上傳', foldLineX: 126, img: null },
+      { id: '5.書背1', x: 590, top: 505, w: 29, h: 398, type: 'rect', isSpine: true, labelSpine: '書背1', img: null },
+      { id: '6.書背2', x: 619, top: 505, w: 29, h: 398, type: 'rect', isSpine: true, labelSpine: '書背2', img: null },
+      { id: '7.封底內(含折邊)', x: 648, top: 505, w: 518, h: 398, type: 'rect', labelMain: '封底內', labelSub: '(含右折邊) + 點擊上傳', foldLineX: 1112, img: null }
     ];
 
     function render() {
-      ctx.fillStyle = '#FFFAF2';
+      ctx.fillStyle = '#FFFFFF';
       ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-
-      ctx.fillStyle = '#F8F1E7';
-      ctx.strokeStyle = '#C8BCAE';
-      ctx.lineWidth = 1.5;
-      ctx.fillRect(20, 260, 470, 220);
-      ctx.strokeRect(20, 260, 470, 220);
 
       zones.forEach((z) => {
         ctx.save();
-        
         ctx.beginPath();
-        if (z.type === 'circle') {
-          ctx.arc(z.x + z.w/2, z.top + z.h/2, z.w/2, 0, Math.PI * 2);
+        if (z.type === 'cd') {
+          const centerX = z.x + z.w/2;
+          const centerY = z.top + z.h/2;
+          ctx.arc(centerX, centerY, z.w/2, 0, Math.PI * 2, false);
+          ctx.arc(centerX, centerY, 29, 0, Math.PI * 2, true);
         } else {
           ctx.rect(z.x, z.top, z.w, z.h);
         }
@@ -179,50 +258,64 @@
             ctx.save();
             ctx.translate(z.x + z.w/2, z.top + z.h/2);
             ctx.rotate(-Math.PI / 2);
-            ctx.font = 'bold 11px sans-serif';
+            ctx.font = 'bold 20px sans-serif';
             ctx.fillText(z.labelSpine, 0, 0);
             ctx.restore();
           } else {
-            ctx.font = 'bold 15px sans-serif';
-            ctx.fillText(z.labelMain, z.x + z.w/2, z.top + z.h/2 - 10);
+            ctx.font = 'bold 27px sans-serif';
+            ctx.fillText(z.labelMain, z.x + z.w/2, z.top + z.h/2 - 18);
             ctx.fillStyle = '#A8998A';
-            ctx.font = '11px sans-serif';
-            ctx.fillText(z.labelSub, z.x + z.w/2, z.top + z.h/2 + 10);
+            ctx.font = '20px sans-serif';
+            ctx.fillText(z.labelSub, z.x + z.w/2, z.top + z.h/2 + 18);
           }
         }
-
         ctx.restore();
 
-        ctx.strokeStyle = '#C8BCAE';
-        ctx.lineWidth = 1.5;
+        ctx.strokeStyle = '#333333';
+        ctx.lineWidth = 2.2;
         ctx.beginPath();
-        if (z.type === 'circle') {
-          ctx.arc(z.x + z.w/2, z.top + z.h/2, z.w/2, 0, Math.PI * 2);
+        if (z.type === 'cd') {
+          const centerX = z.x + z.w/2;
+          const centerY = z.top + z.h/2;
+          ctx.arc(centerX, centerY, z.w/2, 0, Math.PI * 2);
+          ctx.stroke();
+          ctx.beginPath();
+          ctx.arc(centerX, centerY, 29, 0, Math.PI * 2);
+          ctx.stroke();
         } else {
           ctx.rect(z.x, z.top, z.w, z.h);
+          ctx.stroke();
         }
-        ctx.stroke();
+
+        if (z.foldLineX) {
+          ctx.save();
+          ctx.strokeStyle = '#666666';
+          ctx.lineWidth = 1.8;
+          ctx.beginPath();
+          ctx.moveTo(z.foldLineX, z.top);
+          ctx.lineTo(z.foldLineX, z.top + z.h);
+          ctx.stroke();
+          ctx.restore();
+        }
       });
+
+      // 外框同步跟著向上位移
+      ctx.strokeStyle = '#333333';
+      ctx.lineWidth = 2.7;
+      ctx.strokeRect(72, 45, 806, 428);
+      ctx.strokeRect(72, 505, 1094, 398);
 
       if (showBleed) {
         ctx.save();
-        ctx.strokeStyle = '#ff4d4f';
-        ctx.lineWidth = 1.5;
-        ctx.setLineDash([4, 4]);
-
-        const margin = 5;
-
-        // 上方「封面外 + 封面內」合併出血框
-        ctx.strokeRect(20 + margin, 20 + margin, 470 - margin * 2, 220 - margin * 2);
-
-        // CD 圓形出血線
+        ctx.strokeStyle = '#E53935'; 
+        ctx.lineWidth = 2.7;
+        ctx.setLineDash([9, 9]);       
+        ctx.strokeRect(86, 59, 778, 400);
         const cd = zones[2];
         ctx.beginPath();
-        ctx.arc(cd.x + cd.w/2, cd.top + cd.h/2, cd.w/2 - margin, 0, Math.PI * 2);
+        ctx.arc(cd.x + cd.w/2, cd.top + cd.h/2, 184, 0, Math.PI * 2);
         ctx.stroke();
-
-        // 下方整體出血框
-        ctx.strokeRect(20 + margin, 260 + margin, 470 - margin*2, 220 - margin*2);
+        ctx.strokeRect(92, 521, 1054, 369);
         ctx.restore();
       }
 
@@ -231,9 +324,15 @@
         if (z.img) {
           drawTransformControls(z);
         } else {
-          ctx.strokeStyle = '#9A7B68';
-          ctx.lineWidth = 2.5;
-          ctx.strokeRect(z.x, z.top, z.w, z.h);
+          ctx.strokeStyle = '#1890ff';
+          ctx.lineWidth = 3.5;
+          if (z.type === 'cd') {
+            ctx.beginPath();
+            ctx.arc(z.x + z.w/2, z.top + z.h/2, z.w/2, 0, Math.PI * 2);
+            ctx.stroke();
+          } else {
+            ctx.strokeRect(z.x, z.top, z.w, z.h);
+          }
         }
       }
     }
@@ -248,47 +347,36 @@
       ctx.translate(centerX, centerY);
       ctx.rotate(z.imgData.angle * Math.PI / 180);
 
-      ctx.strokeStyle = '#9A7B68';
-      ctx.lineWidth = 1.5;
+      ctx.strokeStyle = '#1890ff';
+      ctx.lineWidth = 2.7;
       ctx.strokeRect(-w/2, -h/2, w, h);
 
       ctx.beginPath();
       ctx.moveTo(0, -h/2);
-      ctx.lineTo(0, -h/2 - 25);
+      ctx.lineTo(0, -h/2 - 45);
       ctx.strokeStyle = '#1890ff';
       ctx.stroke();
 
       ctx.beginPath();
-      ctx.arc(0, -h/2 - 25, 7, 0, Math.PI * 2);
+      ctx.arc(0, -h/2 - 45, 12, 0, Math.PI * 2);
       ctx.fillStyle = '#1890ff';
       ctx.fill();
 
-      const handles = [
-        { x: -w/2, y: -h/2 },
-        { x: w/2, y: -h/2 },
-        { x: -w/2, y: h/2 },
-        { x: w/2, y: h/2 }
-      ];
-
+      const handles = [{ x: -w/2, y: -h/2 }, { x: w/2, y: -h/2 }, { x: -w/2, y: h/2 }, { x: w/2, y: h/2 }];
       handles.forEach(h => {
         ctx.fillStyle = '#ffffff';
-        ctx.strokeStyle = '#9A7B68';
-        ctx.lineWidth = 1.5;
-        ctx.fillRect(h.x - 6, h.y - 6, 12, 12);
-        ctx.strokeRect(h.x - 6, h.y - 6, 12, 12);
+        ctx.strokeStyle = '#1890ff';
+        ctx.lineWidth = 2.7;
+        ctx.fillRect(h.x - 9, h.y - 9, 18, 18);
+        ctx.strokeRect(h.x - 9, h.y - 9, 18, 18);
       });
-
-      ctx.fillStyle = '#1890ff';
-      ctx.font = '12px sans-serif';
-      ctx.fillText(`${Math.round(z.imgData.angle)}°`, 12, -h/2 - 22);
-
       ctx.restore();
     }
 
     let activeMode = null; 
     let startX = 0, startY = 0;
     let initialScale = 1;
-    let pinchDistance = 0;
+    let initialDist = 0;
 
     function getTransformedHandleCoords(z) {
       const centerX = z.x + z.w/2 + z.imgData.offsetX;
@@ -297,23 +385,15 @@
       const h = z.img.height * z.imgData.scale;
       const rad = z.imgData.angle * Math.PI / 180;
 
-      const localHandles = [
-        { x: -w/2, y: -h/2 },
-        { x: w/2, y: -h/2 },
-        { x: -w/2, y: h/2 },
-        { x: w/2, y: h/2 }
-      ];
-
+      const localHandles = [{ x: -w/2, y: -h/2 }, { x: w/2, y: -h/2 }, { x: -w/2, y: h/2 }, { x: w/2, y: h/2 }];
       const globalHandles = localHandles.map(lh => ({
         x: centerX + lh.x * Math.cos(rad) - lh.y * Math.sin(rad),
         y: centerY + lh.x * Math.sin(rad) + lh.y * Math.cos(rad)
       }));
-
       const rotHandle = {
-        x: centerX + (0) * Math.cos(rad) - (-h/2 - 25) * Math.sin(rad),
-        y: centerY + (0) * Math.sin(rad) + (-h/2 - 25) * Math.cos(rad)
+        x: centerX - (-h/2 - 45) * Math.sin(rad),
+        y: centerY + (-h/2 - 45) * Math.cos(rad)
       };
-
       return { globalHandles, rotHandle };
     }
 
@@ -321,62 +401,42 @@
       const rect = canvas.getBoundingClientRect();
       const clientX = e.touches ? e.touches[0].clientX : e.clientX;
       const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-      
-      const scaleX = CANVAS_WIDTH / rect.width;
-      const scaleY = CANVAS_HEIGHT / rect.height;
-
       return {
-        x: (clientX - rect.left) * scaleX,
-        y: (clientY - rect.top) * scaleY
+        x: (clientX - rect.left) * (CANVAS_WIDTH / rect.width),
+        y: (clientY - rect.top) * (CANVAS_HEIGHT / rect.height)
       };
     }
 
     function handleStart(e) {
-      if (e.touches && e.touches.length === 2 && selectedZoneIndex !== -1 && zones[selectedZoneIndex].img) {
-        activeMode = 'pinch';
-        pinchDistance = Math.hypot(
-          e.touches[0].clientX - e.touches[1].clientX,
-          e.touches[0].clientY - e.touches[1].clientY
-        );
-        initialScale = zones[selectedZoneIndex].imgData.scale;
-        return;
-      }
-
       const { x, y } = getCanvasPos(e);
-      const hitThreshold = ('ontouchstart' in window) ? 22 : 14;
+      const hitThreshold = ('ontouchstart' in window) ? 40 : 25;
 
       if (selectedZoneIndex !== -1 && zones[selectedZoneIndex].img) {
         const z = zones[selectedZoneIndex];
         const { globalHandles, rotHandle } = getTransformedHandleCoords(z);
 
         if (Math.hypot(x - rotHandle.x, y - rotHandle.y) <= hitThreshold) {
-          activeMode = 'rotate';
-          startX = x;
-          startY = y;
-          return;
+          activeMode = 'rotate'; startX = x; startY = y; return;
         }
 
         for (let handle of globalHandles) {
           if (Math.hypot(x - handle.x, y - handle.y) <= hitThreshold) {
-            activeMode = 'scale';
-            startX = x;
-            startY = y;
-            initialScale = z.imgData.scale;
+            activeMode = 'scale'; startX = x; startY = y; initialScale = z.imgData.scale;
+            const centerX = z.x + z.w/2 + z.imgData.offsetX;
+            const centerY = z.top + z.h/2 + z.imgData.offsetY;
+            initialDist = Math.hypot(x - centerX, y - centerY);
             return;
           }
         }
       }
 
       const hitIndex = getHitZone(x, y);
-
       if (hitIndex !== -1) {
         selectedZoneIndex = hitIndex;
         if (!zones[hitIndex].img) {
           document.getElementById('hiddenFileInput').click();
         } else {
-          activeMode = 'move';
-          startX = x;
-          startY = y;
+          activeMode = 'move'; startX = x; startY = y;
         }
       } else {
         selectedZoneIndex = -1;
@@ -391,67 +451,43 @@
       const z = zones[selectedZoneIndex];
       const centerX = z.x + z.w/2 + z.imgData.offsetX;
       const centerY = z.top + z.h/2 + z.imgData.offsetY;
-
-      if (activeMode === 'pinch' && e.touches && e.touches.length === 2) {
-        const currentDist = Math.hypot(
-          e.touches[0].clientX - e.touches[1].clientX,
-          e.touches[0].clientY - e.touches[1].clientY
-        );
-        if (pinchDistance > 0) {
-          z.imgData.scale = Math.max(0.1, initialScale * (currentDist / pinchDistance));
-        }
-        render();
-        return;
-      }
-
       const { x, y } = getCanvasPos(e);
 
       if (activeMode === 'move') {
         z.imgData.offsetX += (x - startX);
         z.imgData.offsetY += (y - startY);
-        startX = x;
-        startY = y;
+        startX = x; startY = y;
       } else if (activeMode === 'scale') {
-        const distOld = Math.hypot(startX - centerX, startY - centerY);
-        const distNew = Math.hypot(x - centerX, y - centerY);
-        if (distOld > 0) {
-          z.imgData.scale = Math.max(0.1, initialScale * (distNew / distOld));
+        const currentDist = Math.hypot(x - centerX, y - centerY);
+        if (initialDist > 0) {
+          z.imgData.scale = Math.min(Math.max(0.05, initialScale * (currentDist / initialDist)), 5);
         }
       } else if (activeMode === 'rotate') {
-        const rad = Math.atan2(y - centerY, x - centerX);
-        let angle = rad * (180 / Math.PI) + 90;
+        let angle = Math.atan2(y - centerY, x - centerX) * (180 / Math.PI) + 90;
         angle = (angle % 360 + 360) % 360;
-
-        const snapTargets = [0, 90, 180, 270, 360];
-        for (let target of snapTargets) {
-          if (Math.abs(angle - target) < 6) {
-            angle = target % 360;
-            break;
-          }
-        }
+        [0, 90, 180, 270, 360].forEach(target => {
+          if (Math.abs(angle - target) < 6) angle = target % 360;
+        });
         z.imgData.angle = angle;
       }
       render();
     }
 
-    function handleEnd() { 
-      activeMode = null; 
-    }
+    function handleEnd() { activeMode = null; }
 
     canvas.addEventListener('mousedown', handleStart);
     window.addEventListener('mousemove', handleMove);
     window.addEventListener('mouseup', handleEnd);
-
     canvas.addEventListener('touchstart', handleStart, { passive: false });
     window.addEventListener('touchmove', handleMove, { passive: false });
     window.addEventListener('touchend', handleEnd);
 
     function getHitZone(x, y) {
       return zones.findIndex(z => {
-        if (z.type === 'circle') {
-          const dx = x - (z.x + z.w/2);
-          const dy = y - (z.top + z.h/2);
-          return Math.sqrt(dx*dx + dy*dy) <= z.w/2;
+        if (z.type === 'cd') {
+          const dx = x - (z.x + z.w/2), dy = y - (z.top + z.h/2);
+          const dist = Math.sqrt(dx*dx + dy*dy);
+          return dist <= z.w/2 && dist >= 29;
         }
         return x >= z.x && x <= z.x + z.w && y >= z.top && y <= z.top + z.h;
       });
@@ -461,8 +497,7 @@
       if (selectedZoneIndex !== -1 && zones[selectedZoneIndex].img) {
         e.preventDefault();
         const z = zones[selectedZoneIndex];
-        const zoom = e.deltaY < 0 ? 1.05 : 0.95;
-        z.imgData.scale = Math.max(0.1, z.imgData.scale * zoom);
+        z.imgData.scale = Math.min(Math.max(0.05, z.imgData.scale * (e.deltaY < 0 ? 1.05 : 0.95)), 5);
         render();
       }
     });
@@ -470,15 +505,13 @@
     function handleFileSelect(e) {
       const file = e.target.files[0];
       if (!file || selectedZoneIndex === -1) return;
-
       const reader = new FileReader();
       reader.onload = function(event) {
         const img = new Image();
         img.onload = function() {
           const z = zones[selectedZoneIndex];
           z.img = img;
-          const baseScale = Math.max(z.w / img.width, z.h / img.height);
-          z.imgData = { offsetX: 0, offsetY: 0, scale: baseScale, angle: 0 };
+          z.imgData = { offsetX: 0, offsetY: 0, scale: Math.max(z.w / img.width, z.h / img.height), angle: 0 };
           render();
         };
         img.src = event.target.result;
@@ -487,37 +520,19 @@
       e.target.value = '';
     }
 
-    function toggleBleedLines() {
-      showBleed = !showBleed;
-      render();
+    function toggleBleedLines() { showBleed = !showBleed; render(); }
+    function clearSelectedZone() { if (selectedZoneIndex !== -1) { zones[selectedZoneIndex].img = null; render(); } }
+
+    function openCheckoutModal() {
+      document.getElementById('checkoutModal').style.display = 'flex';
     }
 
-    function clearSelectedZone() {
-      if (selectedZoneIndex !== -1) {
-        zones[selectedZoneIndex].img = null;
-        render();
-      }
+    function closeCheckoutModal() {
+      document.getElementById('checkoutModal').style.display = 'none';
     }
 
-    function exportImage() {
-      const currentBleed = showBleed;
-      const currentSelect = selectedZoneIndex;
-      showBleed = false;
-      selectedZoneIndex = -1;
-      render();
-
-      const link = document.createElement('a');
-      link.download = 'A6-CD-Album-Print.jpg';
-      link.href = canvas.toDataURL('image/jpeg', 1.0);
-      link.click();
-
-      showBleed = currentBleed;
-      selectedZoneIndex = currentSelect;
-      render();
-    }
-
-    window.addEventListener('load', render);
-    setTimeout(render, 100);
+    window.addEventListener('load', () => render());
+    setTimeout(() => render(), 100);
   </script>
 </body>
 </html>
