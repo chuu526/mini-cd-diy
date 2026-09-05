@@ -109,7 +109,7 @@
       margin-bottom: 15px;
       overflow: hidden; 
       position: relative;
-      touch-action: auto; 
+      touch-action: none; /* 禁用預設捲動與平移，交由我們自訂縮放 */
       border: 2px solid #D4C3B3; 
       background: #FFFFFF; 
       box-shadow: 0 4px 12px rgba(0,0,0,0.08); 
@@ -328,6 +328,7 @@
     </div>
   </div>
 
+  <!-- 完成預覽視窗 -->
   <div class="modal-overlay" id="previewModal">
     <div class="modal-content">
       <h3>🎉 您的迷你 CD 排版完成！</h3>
@@ -344,6 +345,7 @@
     </div>
   </div>
 
+  <!-- 傳送中或完成提示視窗 -->
   <div class="modal-overlay" id="statusModal">
     <div class="modal-content">
       <h3 id="statusTitle">📤 正在傳送至店家...</h3>
@@ -824,6 +826,10 @@
     let startX = 0, startY = 0;
     let initialDist = 0, initialScale = 1;
 
+    // 手機雙指縮放相關變數
+    let initialPinchDist = 0;
+    let initialZoom = 1;
+
     function getCanvasPos(e) {
       const rect = canvas.getBoundingClientRect();
       const clientX = e.touches ? e.touches[0].clientX : e.clientX;
@@ -913,11 +919,8 @@
         }
       } else {
         selectedZoneIndex = -1;
-        activeMode = 'pan';
-        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-        startX = clientX; 
-        startY = clientY;
+        // 移除了畫布平移 (Pan) 模式，因此點擊空白處只會取消選取，工作區會固定不動
+        activeMode = null;
       }
       render();
     }
@@ -967,20 +970,23 @@
     });
 
     function handleMove(e) {
+      // 支援手機雙指縮放 (Pinch to Zoom)
+      if (e.touches && e.touches.length === 2) {
+        if (e.cancelable) e.preventDefault();
+        const dist = Math.hypot(
+          e.touches[0].clientX - e.touches[1].clientX,
+          e.touches[0].clientY - e.touches[1].clientY
+        );
+        if (initialPinchDist > 0) {
+          viewZoom = Math.min(Math.max(1, initialZoom * (dist / initialPinchDist)), 4);
+          render();
+        }
+        return;
+      }
+
       if (e.touches && e.touches.length > 1) return; 
       if (!activeMode) return;
       if (e.cancelable) e.preventDefault();
-
-      if (activeMode === 'pan') {
-        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-        viewPanX += (clientX - startX);
-        viewPanY += (clientY - startY);
-        startX = clientX;
-        startY = clientY;
-        render();
-        return;
-      }
 
       if (selectedZoneIndex === -1) return;
       const z = baseZones[selectedZoneIndex];
@@ -1050,12 +1056,23 @@
     }
 
     function handleStart(e) {
+      // 偵測是否為雙指觸控開始
+      if (e.touches && e.touches.length === 2) {
+        initialPinchDist = Math.hypot(
+          e.touches[0].clientX - e.touches[1].clientX,
+          e.touches[0].clientY - e.touches[1].clientY
+        );
+        initialZoom = viewZoom;
+        activeMode = null;
+        return;
+      }
       if (e.touches && e.touches.length > 1) return; 
       handleCanvasInteraction(e);
     }
 
     function handleEnd() { 
       activeMode = null; 
+      initialPinchDist = 0;
     }
 
     canvas.addEventListener('mousedown', handleCanvasInteraction);
@@ -1098,6 +1115,7 @@
           });
         }
       } else {
+        // 電腦滑鼠滾輪進行整張工作區縮放
         viewZoom = Math.min(Math.max(1, viewZoom * (e.deltaY < 0 ? 1.1 : 0.9)), 4);
       }
       render();
