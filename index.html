@@ -99,12 +99,7 @@
       fill: #ffffff;
     }
 
-    /* 電腦版標題預設樣式 */
-    h2.main-title { 
-      margin: 0; 
-      font-size: 22px; 
-      color: #4a3b32; 
-    }
+    h2 { margin: 0; font-size: 22px; color: #4a3b32; }
 
     .canvas-wrapper { 
       width: 850px; 
@@ -319,28 +314,46 @@
       .canvas-wrapper { width: 100%; height: auto; aspect-ratio: 1440 / 960; }
     }
 
-    /* 手機版專屬樣式調整 (螢幕寬度 600px 以下) */
+    /* 手機版特化樣式調整 */
     @media (max-width: 600px) {
       .header-area { 
-        min-height: 50px; 
+        justify-content: flex-start;
+        align-items: center;
+        min-height: 55px; 
         margin-bottom: 10px;
-        justify-content: flex-start; /* 讓內容靠左對齊 */
+        gap: 8px;
+        position: relative;
+        padding-right: 125px; /* 預留右側按鈕空間 */
       }
       .top-left-logo { 
         position: static;
         transform: none;
         width: 50px; 
-        margin-right: 8px; /* 與標題保持間距 */
+        flex-shrink: 0;
       }
-      .top-right-history {
-        position: static;
-        transform: none;
-        margin-left: auto; /* 靠右對齊按鈕 */
+      h2 { 
+        font-size: 16px; 
+        text-align: left;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
       }
-      h2.main-title { 
-        font-size: 15px; /* 縮小字體避免擠壓 */
-        white-space: nowrap; /* 保持不換行 */
+      .top-right-history { 
+        position: absolute;
+        right: 0;
+        top: 50%;
+        transform: translateY(-50%);
       }
+      .btn-history-icon, .btn-trash-icon {
+        width: 34px;
+        height: 34px;
+        font-size: 15px;
+      }
+      .btn-trash-icon svg {
+        width: 16px;
+        height: 16px;
+      }
+
       .color-picker-bar { 
         flex-direction: column; 
         align-items: flex-start; 
@@ -348,11 +361,11 @@
       }
       .color-picker-bar > div:first-of-type {
         display: flex;
+        flex-direction: row-reverse; /* 讓自訂色塊移到左邊 */
+        justify-content: flex-end;
         align-items: center;
         gap: 8px;
         width: 100%;
-        flex-direction: row-reverse; /* 讓色票按鈕在前面，顏色方塊在後方 */
-        justify-content: flex-end;
       }
       .color-presets {
         width: 100%;
@@ -372,7 +385,7 @@
   <div class="main-container">
     <div class="header-area">
       <img src="The創 LOGO.png" alt="The創 LOGO" class="top-left-logo">
-      <h2 class="main-title">迷你 CD 專輯 DIY</h2>
+      <h2>迷你 CD 專輯 DIY</h2>
       <div class="top-right-history">
         <button class="btn-history-icon" onclick="undoAction()" title="返回上一步">↶</button>
         <button class="btn-history-icon" onclick="redoAction()" title="重做下一步">↷</button>
@@ -416,6 +429,7 @@
     </div>
   </div>
 
+  <!-- 完成預覽視窗 -->
   <div class="modal-overlay" id="previewModal" onclick="checkOutsideClose(event, 'previewModal')">
     <div class="modal-content">
       <h3>🎉 您的迷你 CD 排版完成！</h3>
@@ -442,6 +456,7 @@
     </div>
   </div>
 
+  <!-- 傳送中或完成/失敗提示視窗 -->
   <div class="modal-overlay" id="statusModal" onclick="checkOutsideClose(event, 'statusModal')">
     <div class="modal-content">
       <h3 id="statusTitle">📤 正在傳送至店家...</h3>
