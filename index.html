@@ -460,13 +460,13 @@
     const LINE_COLOR = '#E0E0E0';
 
     let baseZones = [
-      { id: '1.封面外', x: 72, top: 45, w: 403, h: 428, type: 'rect', labelMain: '封面外', labelSub: '+ 點擊上傳', img: null, bgColor: '#FFFFFF', imgData: null },
-      { id: '2.封面內', x: 475, top: 45, w: 403, h: 428, type: 'rect', labelMain: '封面內', labelSub: '+ 點擊上傳', img: null, bgColor: '#FFFFFF', imgData: null },
-      { id: '3.CD光碟', x: 963, top: 65, w: 389, h: 389, type: 'cd', labelMain: 'CD 封面', labelSub: '+ 點擊上傳', img: null, bgColor: '#FFFFFF', imgData: null },
-      { id: '4.封底外(含折邊)', x: 72, top: 505, w: 518, h: 398, type: 'rect', labelMain: '封底外', labelSub: '(含左折邊) + 點擊上傳', foldLineX: 126, img: null, bgColor: '#FFFFFF', imgData: null },
-      { id: '5.書背1', x: 590, top: 505, w: 29, h: 398, type: 'rect', isSpine: true, labelSpine: '書背1', img: null, bgColor: '#FFFFFF', imgData: null },
-      { id: '6.書背2', x: 619, top: 505, w: 29, h: 398, type: 'rect', isSpine: true, labelSpine: '', groupId: 'spine2_inner_back', img: null, bgColor: '#FFFFFF', imgData: null },
-      { id: '7.封底內(含折邊)', x: 648, top: 505, w: 514, h: 398, type: 'rect', labelMain: '封底內', labelSub: '(含右折邊) + 點擊上傳', foldLineX: 1108, groupId: 'spine2_inner_back', img: null, bgColor: '#FFFFFF', imgData: null }
+      { id: '1.封面外', x: 72, top: 45, w: 403, h: 428, type: 'rect', labelMain: '封面外', labelSub: '+ 點擊上傳', img: null, bgColor: '#FFFFFF', imgData: null, imgSrcBlob: null },
+      { id: '2.封面內', x: 475, top: 45, w: 403, h: 428, type: 'rect', labelMain: '封面內', labelSub: '+ 點擊上傳', img: null, bgColor: '#FFFFFF', imgData: null, imgSrcBlob: null },
+      { id: '3.CD光碟', x: 963, top: 65, w: 389, h: 389, type: 'cd', labelMain: 'CD 封面', labelSub: '+ 點擊上傳', img: null, bgColor: '#FFFFFF', imgData: null, imgSrcBlob: null },
+      { id: '4.封底外(含折邊)', x: 72, top: 505, w: 518, h: 398, type: 'rect', labelMain: '封底外', labelSub: '(含左折邊) + 點擊上傳', foldLineX: 126, img: null, bgColor: '#FFFFFF', imgData: null, imgSrcBlob: null },
+      { id: '5.書背1', x: 590, top: 505, w: 29, h: 398, type: 'rect', isSpine: true, labelSpine: '書背1', img: null, bgColor: '#FFFFFF', imgData: null, imgSrcBlob: null },
+      { id: '6.書背2', x: 619, top: 505, w: 29, h: 398, type: 'rect', isSpine: true, labelSpine: '', groupId: 'spine2_inner_back', img: null, bgColor: '#FFFFFF', imgData: null, imgSrcBlob: null },
+      { id: '7.封底內(含折邊)', x: 648, top: 505, w: 514, h: 398, type: 'rect', labelMain: '封底內', labelSub: '(含右折邊) + 點擊上傳', foldLineX: 1108, groupId: 'spine2_inner_back', img: null, bgColor: '#FFFFFF', imgData: null, imgSrcBlob: null }
     ];
 
     let undoStack = [];
@@ -476,7 +476,7 @@
     function getCurrentStateSnapshot() {
       return baseZones.map(z => ({
         bgColor: z.bgColor,
-        imgSrc: z.img ? z.img.src : null,
+        imgSrcBlob: z.imgSrcBlob,
         imgData: z.imgData ? { ...z.imgData } : null
       }));
     }
@@ -490,18 +490,20 @@
     function restoreState(state) {
       state.forEach((savedZ, i) => {
         baseZones[i].bgColor = savedZ.bgColor;
-        if (savedZ.imgSrc) {
-          if (baseZones[i].img && baseZones[i].img.src === savedZ.imgSrc) {
-            baseZones[i].imgData = savedZ.imgData ? { ...savedZ.imgData } : null;
-          } else {
+        baseZones[i].imgSrcBlob = savedZ.imgSrcBlob;
+        baseZones[i].imgData = savedZ.imgData ? { ...savedZ.imgData } : null;
+
+        if (savedZ.imgSrcBlob) {
+          if (!baseZones[i].img || baseZones[i].currentBlobUrl !== savedZ.imgSrcBlob) {
             const img = new Image();
-            img.src = savedZ.imgSrc;
+            img.onload = () => { render(); };
+            img.src = savedZ.imgSrcBlob;
             baseZones[i].img = img;
-            baseZones[i].imgData = savedZ.imgData ? { ...savedZ.imgData } : null;
+            baseZones[i].currentBlobUrl = savedZ.imgSrcBlob;
           }
         } else {
           baseZones[i].img = null;
-          baseZones[i].imgData = null;
+          baseZones[i].currentBlobUrl = null;
         }
       });
       render();
@@ -622,6 +624,8 @@
 
         if (targetImgObj && targetImgDataObj) {
           ctx.save();
+          ctx.imageSmoothingEnabled = true;
+          ctx.imageSmoothingQuality = 'high';
           let centerX, centerY;
           if (z.groupId) {
             const groupMembers = baseZones.filter(item => item.groupId === z.groupId);
@@ -982,48 +986,48 @@
       render();
     }
 
+    // 完美無失真高畫質讀取 (使用 URL.createObjectURL 直接載入原始檔案 Blob)
     globalFileInput.addEventListener('change', function(e) {
       const file = e.target.files[0];
       if (!file || selectedZoneIndex === -1) return;
 
-      const reader = new FileReader();
-      reader.onload = function(event) {
-        const img = new Image();
-        img.onload = function() {
-          saveState();
-          const z = baseZones[selectedZoneIndex];
-          const sharedGroupId = z.groupId;
+      const blobUrl = URL.createObjectURL(file);
+      const img = new Image();
+      img.onload = function() {
+        saveState();
+        const z = baseZones[selectedZoneIndex];
+        const sharedGroupId = z.groupId;
 
-          let defaultScale;
-          if (sharedGroupId) {
-            const groupMembers = baseZones.filter(item => item.groupId === sharedGroupId);
-            const minX = Math.min(...groupMembers.map(m => m.x));
-            const maxX = Math.max(...groupMembers.map(m => m.x + m.w));
-            const minY = Math.min(...groupMembers.map(m => m.top));
-            const maxY = Math.max(...groupMembers.map(m => m.top + m.h));
-            const groupW = maxX - minX;
-            const groupH = maxY - minY;
-            defaultScale = Math.max(groupW / img.width, groupH / img.height);
-          } else {
-            defaultScale = Math.max(z.w / img.width, z.h / img.height);
+        let defaultScale;
+        if (sharedGroupId) {
+          const groupMembers = baseZones.filter(item => item.groupId === sharedGroupId);
+          const minX = Math.min(...groupMembers.map(m => m.x));
+          const maxX = Math.max(...groupMembers.map(m => m.x + m.w));
+          const minY = Math.min(...groupMembers.map(m => m.top));
+          const maxY = Math.max(...groupMembers.map(m => m.top + m.h));
+          const groupW = maxX - minX;
+          const groupH = maxY - minY;
+          defaultScale = Math.max(groupW / img.width, groupH / img.height);
+        } else {
+          defaultScale = Math.max(z.w / img.width, z.h / img.height);
+        }
+
+        baseZones.forEach(item => {
+          if (item === z || (sharedGroupId && item.groupId === sharedGroupId)) {
+            item.img = img;
+            item.currentBlobUrl = blobUrl;
+            item.imgSrcBlob = blobUrl;
+            item.imgData = { 
+              offsetX: 0, 
+              offsetY: 0, 
+              scale: defaultScale, 
+              angle: 0 
+            };
           }
-
-          baseZones.forEach(item => {
-            if (item === z || (sharedGroupId && item.groupId === sharedGroupId)) {
-              item.img = img;
-              item.imgData = { 
-                offsetX: 0, 
-                offsetY: 0, 
-                scale: defaultScale, 
-                angle: 0 
-              };
-            }
-          });
-          render();
-        };
-        img.src = event.target.result;
+        });
+        render();
       };
-      reader.readAsDataURL(file);
+      img.src = blobUrl;
     });
 
     function handleMove(e) {
@@ -1172,6 +1176,8 @@
           baseZones.forEach(item => {
             if (item === z || (sharedGroupId && item.groupId === sharedGroupId)) {
               item.img = null;
+              item.currentBlobUrl = null;
+              item.imgSrcBlob = null;
               item.imgData = null;
             }
           });
@@ -1189,7 +1195,7 @@
         document.getElementById('modalPreviewImg').src = url;
         document.getElementById('previewModal').style.display = 'flex';
         render(false);
-      }, 'image/jpeg', 0.92);
+      }, 'image/jpeg', 0.98);
     }
 
     function closePreviewModal() {
@@ -1234,7 +1240,7 @@
 
       const statusModal = document.getElementById('statusModal');
       document.getElementById('statusTitle').innerText = '📤 正在傳送至店家...';
-      document.getElementById('statusDesc').innerText = `正在將檔案「${fileName}」與預約日期 (${visitDate}) 傳送到店家後端，請稍候片刻...`;
+      document.getElementById('statusDesc').innerText = `正在將高畫質檔案「${fileName}」與預約日期 (${visitDate}) 傳送到店家後端，請稍候片刻...`;
       document.getElementById('statusCloseBtnRow').style.display = 'none';
       statusModal.style.display = 'flex';
 
@@ -1284,7 +1290,7 @@
         });
 
         render(false); 
-      }, 'image/jpeg', 0.95);
+      }, 'image/jpeg', 0.98);
     }
 
     window.addEventListener('load', () => {
