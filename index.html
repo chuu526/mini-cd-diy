@@ -285,20 +285,14 @@
     }
     @media (max-width: 600px) {
       .header-area { 
-        min-height: 45px; 
+        min-height: 50px; 
         margin-bottom: 10px;
-        justify-content: flex-start;
-        padding-left: 62px;
-        padding-right: 130px;
-        box-sizing: border-box;
       }
       .top-left-logo { 
         width: 55px; 
       }
       h2 { 
-        font-size: 15px; 
-        text-align: left;
-        white-space: nowrap;
+        font-size: 17px; 
       }
       .color-picker-bar { 
         flex-direction: column; 
@@ -310,16 +304,16 @@
         align-items: center;
         gap: 8px;
         width: 100%;
-        flex-wrap: nowrap;
       }
       .color-presets {
+        width: 100%;
         display: flex;
-        gap: 4px;
-        flex-wrap: nowrap;
+        justify-content: space-between;
       }
       .preset-btn {
-        padding: 4px 8px;
-        font-size: 11px;
+        flex: 1;
+        text-align: center;
+        padding: 6px 2px;
       }
     }
   </style>
@@ -346,17 +340,15 @@
     </div>
 
     <div class="color-picker-bar">
-      <div>
+      <div style="display: flex; align-items: center; gap: 8px;">
         <span id="colorBarLabel">🎨 請點選上方格子以設定個別底色：</span>
-      </div>
-      <div style="display: flex; align-items: center; gap: 8px; width: 100%; justify-content: flex-start; flex-wrap: wrap;">
-        <div class="color-presets">
-          <button class="preset-btn" onclick="setPresetColor('#FFFFFF')">純白底</button>
-          <button class="preset-btn" onclick="setPresetColor('#FFFAF2')">米色底</button>
-          <button class="preset-btn" onclick="setPresetColor('#FFF0F5')">淺粉底</button>
-          <button class="preset-btn" onclick="setPresetColor('#E0F7FA')">淺藍底</button>
-        </div>
         <input type="color" id="zoneBgColorPicker" value="#FFFFFF" onchange="changeSelectedZoneBgColor(this.value)">
+      </div>
+      <div class="color-presets">
+        <button class="preset-btn" onclick="setPresetColor('#FFFFFF')">純白底</button>
+        <button class="preset-btn" onclick="setPresetColor('#FFFAF2')">米色底</button>
+        <button class="preset-btn" onclick="setPresetColor('#FFF0F5')">淺粉底</button>
+        <button class="preset-btn" onclick="setPresetColor('#E0F7FA')">淺藍底</button>
       </div>
     </div>
 
