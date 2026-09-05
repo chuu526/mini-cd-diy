@@ -155,11 +155,12 @@
 
     .color-picker-bar {
       display: flex;
-      align-items: center;
+      flex-direction: column;
+      align-items: flex-start;
       gap: 10px;
       background: #FFF8D7;
       border: 1px solid #ffe58f;
-      padding: 10px 16px;
+      padding: 12px 16px;
       border-radius: 6px;
       width: 100%;
       max-width: 850px;
@@ -170,10 +171,25 @@
       font-weight: bold;
     }
 
+    .color-picker-label-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+    }
+
+    .color-picker-content-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+      flex-wrap: wrap;
+    }
+
     .color-picker-bar input[type="color"] {
       border: 1px solid #ffe58f;
-      width: 35px;
-      height: 35px;
+      width: 38px;
+      height: 38px;
       border-radius: 4px;
       cursor: pointer;
       background: none;
@@ -184,10 +200,11 @@
       display: flex; 
       gap: 6px; 
       flex-wrap: wrap;
+      flex: 1;
     }
 
     .preset-btn {
-      padding: 5px 10px;
+      padding: 8px 12px;
       font-size: 12px;
       border: 1px solid #ffe58f;
       border-radius: 4px;
@@ -315,25 +332,38 @@
     }
     @media (max-width: 600px) {
       .header-area { 
-        min-height: 50px; 
+        min-height: 44px; 
         margin-bottom: 10px;
+        justify-content: flex-start;
+        padding-left: 62px;
+        padding-right: 135px; /* 留空間給右側 3 個按鈕 */
       }
       .top-left-logo { 
-        width: 55px; 
+        width: 52px; 
       }
       h2 { 
-        font-size: 17px; 
-      }
-      .color-picker-bar { 
-        flex-direction: column; 
-        align-items: flex-start; 
-        gap: 8px;
-      }
-      .color-picker-bar > div:first-of-type {
-        display: flex;
-        align-items: center;
-        gap: 8px;
+        font-size: 15px; 
+        text-align: left;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
         width: 100%;
+      }
+      .top-right-history {
+        right: 0;
+      }
+      .btn-history-icon {
+        width: 34px;
+        height: 34px;
+        font-size: 16px;
+      }
+      .btn-trash-icon {
+        width: 34px;
+        height: 34px;
+      }
+      .btn-trash-icon svg {
+        width: 17px;
+        height: 17px;
       }
       .color-presets {
         width: 100%;
@@ -344,6 +374,7 @@
         flex: 1;
         text-align: center;
         padding: 6px 2px;
+        font-size: 11px;
       }
     }
   </style>
@@ -370,15 +401,18 @@
     </div>
 
     <div class="color-picker-bar">
-      <div style="display: flex; align-items: center; gap: 8px;">
+      <div class="color-picker-label-row">
         <span id="colorBarLabel">🎨 請點選上方格子以設定個別底色：</span>
-        <input type="color" id="zoneBgColorPicker" value="#FFFFFF" onchange="changeSelectedZoneBgColor(this.value)">
       </div>
-      <div class="color-presets">
-        <button class="preset-btn" onclick="setPresetColor('#FFFFFF')">純白底</button>
-        <button class="preset-btn" onclick="setPresetColor('#FFFAF2')">米色底</button>
-        <button class="preset-btn" onclick="setPresetColor('#FFF0F5')">淺粉底</button>
-        <button class="preset-btn" onclick="setPresetColor('#E0F7FA')">淺藍底</button>
+      <div class="color-picker-content-row">
+        <!-- 顏色選擇器已移至色票最前面 -->
+        <input type="color" id="zoneBgColorPicker" value="#FFFFFF" onchange="changeSelectedZoneBgColor(this.value)" disabled>
+        <div class="color-presets">
+          <button class="preset-btn" onclick="setPresetColor('#FFFFFF')">純白底</button>
+          <button class="preset-btn" onclick="setPresetColor('#FFFAF2')">米色底</button>
+          <button class="preset-btn" onclick="setPresetColor('#FFF0F5')">淺粉底</button>
+          <button class="preset-btn" onclick="setPresetColor('#E0F7FA')">淺藍底</button>
+        </div>
       </div>
     </div>
 
@@ -1236,7 +1270,6 @@
       selectedZoneIndex = -1;
       render(true); 
 
-      // 修正：確保 blob 透過完整的型別與包裝送出，避免檔案格式損毀
       canvas.toBlob(function(blob) {
         if (!blob) {
           alert('圖片生成失敗，請再試一次！');
@@ -1248,9 +1281,7 @@
         const safeBlob = new Blob([blob], { type: 'image/jpeg' });
         const formData = new FormData();
         
-        // 帶入明確副檔名的檔案物件
         formData.append('file', safeBlob, fileName + '.jpg');
-        
         formData.append('customer_name', fileName);
         formData.append('reservation_time', visitDate);
         formData.append('file_name', fileName);
