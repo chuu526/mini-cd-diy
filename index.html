@@ -102,14 +102,13 @@
     h2 { margin: 0; font-size: 22px; color: #4a3b32; }
 
     .canvas-wrapper { 
-      width: 100%; 
-      max-width: 850px; 
+      width: 850px; 
+      height: 566.67px; 
       display: flex; 
       justify-content: center; 
       margin-bottom: 15px;
       overflow: hidden; 
       position: relative;
-      touch-action: none; /* 禁用預設捲動與平移，交由我們自訂縮放 */
       border: 2px solid #D4C3B3; 
       background: #FFFFFF; 
       box-shadow: 0 4px 12px rgba(0,0,0,0.08); 
@@ -119,6 +118,8 @@
     canvas { 
       display: block;
       cursor: pointer; 
+      width: 100% !important;
+      height: 100% !important;
     }
 
     .controls { 
@@ -273,6 +274,9 @@
     }
     .btn-modal-close:hover { background: #d2bc94; }
 
+    @media (max-width: 900px) {
+      .canvas-wrapper { width: 100%; height: auto; aspect-ratio: 1440 / 960; }
+    }
     @media (max-width: 600px) {
       .header-area { flex-direction: column; gap: 10px; min-height: auto; padding-top: 45px; }
       .top-left-logo { position: absolute; left: 0; top: 0; transform: none; }
@@ -370,10 +374,6 @@
     let previewFinished = false;
     let selectedZoneIndex = -1;
 
-    let viewZoom = 1;
-    let viewPanX = 0;
-    let viewPanY = 0;
-
     const LINE_COLOR = '#E0E0E0';
 
     let baseZones = [
@@ -455,12 +455,6 @@
 
     function initCanvasSize() {
       const dpr = window.devicePixelRatio || 1;
-      const displayWidth = wrapper.clientWidth;
-      const displayHeight = displayWidth * (DESIGN_HEIGHT / DESIGN_WIDTH);
-
-      canvas.style.width = displayWidth + 'px';
-      canvas.style.height = displayHeight + 'px';
-
       canvas.width = DESIGN_WIDTH * dpr;
       canvas.height = DESIGN_HEIGHT * dpr;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -520,11 +514,6 @@
 
       ctx.save();
       ctx.clearRect(0, 0, DESIGN_WIDTH, DESIGN_HEIGHT);
-
-      if (!isExporting) {
-        ctx.translate(viewPanX, viewPanY);
-        ctx.scale(viewZoom, viewZoom);
-      }
 
       ctx.fillStyle = '#FFFFFF';
       ctx.fillRect(0, 0, DESIGN_WIDTH, DESIGN_HEIGHT);
@@ -602,7 +591,7 @@
         ctx.restore();
 
         ctx.strokeStyle = LINE_COLOR;
-        ctx.lineWidth = isExporting ? 1.2 : (2.2 / viewZoom);
+        ctx.lineWidth = isExporting ? 1.2 : 2.2;
         
         ctx.beginPath();
         if (z.type === 'cd') {
@@ -621,7 +610,7 @@
         if (z.foldLineX) {
           ctx.save();
           ctx.strokeStyle = LINE_COLOR;
-          ctx.lineWidth = isExporting ? 1.2 : (1.8 / viewZoom);
+          ctx.lineWidth = isExporting ? 1.2 : 1.8;
           ctx.beginPath();
           ctx.moveTo(z.foldLineX, z.top);
           ctx.lineTo(z.foldLineX, z.top + z.h);
@@ -631,7 +620,7 @@
       });
 
       ctx.strokeStyle = LINE_COLOR;
-      ctx.lineWidth = isExporting ? 1.2 : (2.7 / viewZoom);
+      ctx.lineWidth = isExporting ? 1.2 : 2.7;
       ctx.strokeRect(72, 45, 806, 428);
       ctx.strokeRect(72, 505, 1090, 398);
 
@@ -659,7 +648,7 @@
         ctx.fill('evenodd');
 
         ctx.strokeStyle = LINE_COLOR;
-        ctx.lineWidth = 1.5 / viewZoom;
+        ctx.lineWidth = 1.5;
         ctx.strokeRect(86, 59, 778, 400);
         ctx.beginPath();
         ctx.arc(cd.x + cd.w/2, cd.top + cd.h/2, 184, 0, Math.PI * 2);
@@ -670,8 +659,8 @@
       } else {
         ctx.save();
         ctx.strokeStyle = '#E53935'; 
-        ctx.lineWidth = 2.7 / viewZoom;
-        ctx.setLineDash([9 / viewZoom, 9 / viewZoom]);     
+        ctx.lineWidth = 2.7;
+        ctx.setLineDash([9, 9]);     
         ctx.strokeRect(86, 59, 778, 400);
         const cd = baseZones[2];
         ctx.beginPath();
@@ -693,7 +682,7 @@
           drawTransformControls(z);
         } else {
           ctx.strokeStyle = '#1890ff';
-          ctx.lineWidth = 3.5 / viewZoom;
+          ctx.lineWidth = 3.5;
           if (z.groupId) {
             const groupMembers = baseZones.filter(item => item.groupId === z.groupId);
             const minX = Math.min(...groupMembers.map(m => m.x));
@@ -753,17 +742,17 @@
       ctx.rotate(targetData.angle * Math.PI / 180);
 
       ctx.strokeStyle = '#1890ff';
-      ctx.lineWidth = 2.7 / viewZoom;
+      ctx.lineWidth = 2.7;
       ctx.strokeRect(-w/2, -h/2, w, h);
 
       ctx.beginPath();
       ctx.moveTo(0, -h/2);
-      ctx.lineTo(0, -h/2 - (45 / viewZoom));
+      ctx.lineTo(0, -h/2 - 45);
       ctx.strokeStyle = '#1890ff';
       ctx.stroke();
 
       ctx.beginPath();
-      ctx.arc(0, -h/2 - (45 / viewZoom), 12 / viewZoom, 0, Math.PI * 2);
+      ctx.arc(0, -h/2 - 45, 12, 0, Math.PI * 2);
       ctx.fillStyle = '#1890ff';
       ctx.fill();
 
@@ -771,9 +760,9 @@
       handles.forEach(hCoord => {
         ctx.fillStyle = '#ffffff';
         ctx.strokeStyle = '#1890ff';
-        ctx.lineWidth = 2.7 / viewZoom;
-        ctx.fillRect(hCoord.x - (9 / viewZoom), hCoord.y - (9 / viewZoom), 18 / viewZoom, 18 / viewZoom);
-        ctx.strokeRect(hCoord.x - (9 / viewZoom), hCoord.y - (9 / viewZoom), 18 / viewZoom, 18 / viewZoom);
+        ctx.lineWidth = 2.7;
+        ctx.fillRect(hCoord.x - 9, hCoord.y - 9, 18, 18);
+        ctx.strokeRect(hCoord.x - 9, hCoord.y - 9, 18, 18);
       });
       ctx.restore();
     }
@@ -826,10 +815,6 @@
     let startX = 0, startY = 0;
     let initialDist = 0, initialScale = 1;
 
-    // 手機雙指縮放相關變數
-    let initialPinchDist = 0;
-    let initialZoom = 1;
-
     function getCanvasPos(e) {
       const rect = canvas.getBoundingClientRect();
       const clientX = e.touches ? e.touches[0].clientX : e.clientX;
@@ -837,17 +822,14 @@
       const rawX = (clientX - rect.left) * (DESIGN_WIDTH / rect.width);
       const rawY = (clientY - rect.top) * (DESIGN_HEIGHT / rect.height);
       
-      return {
-        x: (rawX - viewPanX) / viewZoom,
-        y: (rawY - viewPanY) / viewZoom
-      };
+      return { x: rawX, y: rawY };
     }
 
     function handleCanvasInteraction(e) {
       if (e.touches && e.touches.length > 1) return;
 
       const { x, y } = getCanvasPos(e);
-      const hitThreshold = 25 / viewZoom;
+      const hitThreshold = 25;
 
       if (selectedZoneIndex !== -1) {
         const z = baseZones[selectedZoneIndex];
@@ -919,7 +901,6 @@
         }
       } else {
         selectedZoneIndex = -1;
-        // 移除了畫布平移 (Pan) 模式，因此點擊空白處只會取消選取，工作區會固定不動
         activeMode = null;
       }
       render();
@@ -970,20 +951,6 @@
     });
 
     function handleMove(e) {
-      // 支援手機雙指縮放 (Pinch to Zoom)
-      if (e.touches && e.touches.length === 2) {
-        if (e.cancelable) e.preventDefault();
-        const dist = Math.hypot(
-          e.touches[0].clientX - e.touches[1].clientX,
-          e.touches[0].clientY - e.touches[1].clientY
-        );
-        if (initialPinchDist > 0) {
-          viewZoom = Math.min(Math.max(1, initialZoom * (dist / initialPinchDist)), 4);
-          render();
-        }
-        return;
-      }
-
       if (e.touches && e.touches.length > 1) return; 
       if (!activeMode) return;
       if (e.cancelable) e.preventDefault();
@@ -1056,23 +1023,12 @@
     }
 
     function handleStart(e) {
-      // 偵測是否為雙指觸控開始
-      if (e.touches && e.touches.length === 2) {
-        initialPinchDist = Math.hypot(
-          e.touches[0].clientX - e.touches[1].clientX,
-          e.touches[0].clientY - e.touches[1].clientY
-        );
-        initialZoom = viewZoom;
-        activeMode = null;
-        return;
-      }
       if (e.touches && e.touches.length > 1) return; 
       handleCanvasInteraction(e);
     }
 
     function handleEnd() { 
       activeMode = null; 
-      initialPinchDist = 0;
     }
 
     canvas.addEventListener('mousedown', handleCanvasInteraction);
@@ -1113,12 +1069,9 @@
               item.imgData.scale = newScale;
             }
           });
+          render();
         }
-      } else {
-        // 電腦滑鼠滾輪進行整張工作區縮放
-        viewZoom = Math.min(Math.max(1, viewZoom * (e.deltaY < 0 ? 1.1 : 0.9)), 4);
       }
-      render();
     }, { passive: false });
 
     function toggleBleedLines() { 
