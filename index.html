@@ -222,37 +222,67 @@
     }
     .modal-content {
       background: #ffffff;
-      padding: 25px;
+      padding: 22px;
       border-radius: 12px;
       width: 90%;
       max-width: 420px;
       text-align: center;
       box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+      max-height: 90vh;
+      overflow-y: auto;
+      box-sizing: border-box;
     }
     .modal-content h3 { margin-top: 0; color: #4a3b32; font-size: 20px; }
-    .modal-content p { font-size: 13px; color: #555; line-height: 1.5; margin-bottom: 15px; }
+    .modal-content p { font-size: 13px; color: #555; line-height: 1.4; margin-bottom: 12px; }
     
     .preview-img-container {
       width: 100%;
-      max-height: 250px;
-      overflow: hidden;
+      height: 190px;
       border: 1px solid #D4C3B3;
       border-radius: 6px;
-      margin-bottom: 15px;
+      margin-bottom: 12px;
       background: #f9f9f9;
       display: flex;
       justify-content: center;
       align-items: center;
+      overflow: hidden;
     }
     .preview-img-container img {
       width: 100%;
-      height: auto;
+      height: 100%;
+      object-fit: contain;
       display: block;
+    }
+
+    .form-group-row {
+      text-align: left;
+      margin-bottom: 12px;
+    }
+    .form-group-row label {
+      display: block;
+      font-size: 13px;
+      font-weight: bold;
+      color: #4a3b32;
+      margin-bottom: 4px;
+    }
+    .form-group-row label .required-star {
+      color: #e53935;
+      margin-left: 2px;
+    }
+    .form-group-row input {
+      width: 100%;
+      padding: 9px 10px;
+      border: 1px solid #D4C3B3;
+      border-radius: 6px;
+      font-size: 14px;
+      box-sizing: border-box;
+      background: #fff;
     }
 
     .modal-btn-row {
       display: flex;
       gap: 10px;
+      margin-top: 5px;
     }
     .btn-modal-upload { 
       background: #9E7B66; 
@@ -368,13 +398,23 @@
   </div>
 
   <!-- 完成預覽視窗 -->
-  <div class="modal-overlay" id="previewModal">
+  <div class="modal-overlay" id="previewModal" onclick="checkOutsideClose(event, 'previewModal')">
     <div class="modal-content">
       <h3>🎉 您的迷你 CD 排版完成！</h3>
-      <p>請確認您的排版預覽圖，點擊左側按鈕即可直接傳送給店家製作！</p>
+      <p>請確認預覽圖，並填寫檔案名稱與預計來店製作日期（皆為必填），即可傳送給店家！</p>
       
       <div class="preview-img-container">
         <img id="modalPreviewImg" src="" alt="排版預覽圖">
+      </div>
+
+      <div class="form-group-row">
+        <label for="inputFileName">📁 檔案名稱 / 客戶稱呼：<span class="required-star">*</span></label>
+        <input type="text" id="inputFileName" placeholder="例如：我的迷你CD專屬設計" required>
+      </div>
+
+      <div class="form-group-row">
+        <label for="inputVisitDate">📅 預計來店製作日期：<span class="required-star">*</span></label>
+        <input type="date" id="inputVisitDate" required>
       </div>
 
       <div class="modal-btn-row">
@@ -384,11 +424,14 @@
     </div>
   </div>
 
-  <!-- 傳送中或完成提示視窗 -->
-  <div class="modal-overlay" id="statusModal">
+  <!-- 傳送中或完成/失敗提示視窗 -->
+  <div class="modal-overlay" id="statusModal" onclick="checkOutsideClose(event, 'statusModal')">
     <div class="modal-content">
       <h3 id="statusTitle">📤 正在傳送至店家...</h3>
-      <p id="statusDesc">正在將 1440x960 完整原尺寸高畫質檔案傳送到店家後端，請稍候片刻...</p>
+      <p id="statusDesc">正在將高畫質 JPG 檔案與預約資訊傳送到店家後端，請稍候片刻...</p>
+      <div class="modal-btn-row" id="statusCloseBtnRow" style="display: none; margin-top: 15px;">
+        <button class="btn-modal-close" onclick="closeStatusModal()">關閉視窗</button>
+      </div>
     </div>
   </div>
 
@@ -1141,14 +1184,42 @@
         document.getElementById('modalPreviewImg').src = url;
         document.getElementById('previewModal').style.display = 'flex';
         render(false);
-      }, 'image/png', 1.0);
+      }, 'image/jpeg', 0.92);
     }
 
     function closePreviewModal() {
       document.getElementById('previewModal').style.display = 'none';
     }
 
+    function closeStatusModal() {
+      document.getElementById('statusModal').style.display = 'none';
+    }
+
+    function checkOutsideClose(event, modalId) {
+      if (event.target.id === modalId) {
+        document.getElementById(modalId).style.display = 'none';
+      }
+    }
+
     function confirmAndUpload() {
+      const fileNameInput = document.getElementById('inputFileName');
+      const visitDateInput = document.getElementById('inputVisitDate');
+
+      const fileName = fileNameInput.value.trim();
+      const visitDate = visitDateInput.value;
+
+      if (!fileName) {
+        alert('請填寫「檔案名稱 / 客戶稱呼」！');
+        fileNameInput.focus();
+        return;
+      }
+
+      if (!visitDate) {
+        alert('請選擇「預計來店製作日期」！');
+        visitDateInput.focus();
+        return;
+      }
+
       closePreviewModal();
 
       if (!MAKE_WEBHOOK_URL) {
@@ -1158,16 +1229,33 @@
 
       const statusModal = document.getElementById('statusModal');
       document.getElementById('statusTitle').innerText = '📤 正在傳送至店家...';
-      document.getElementById('statusDesc').innerText = '正在將 1440x960 完整原尺寸高畫質檔案傳送到店家後端，請稍候片刻...';
+      document.getElementById('statusDesc').innerText = `正在將檔案「${fileName}」與預約日期 (${visitDate}) 傳送到店家後端，請稍候片刻...`;
+      document.getElementById('statusCloseBtnRow').style.display = 'none';
       statusModal.style.display = 'flex';
 
       selectedZoneIndex = -1;
       render(true); 
 
+      // 修正：確保 blob 透過完整的型別與包裝送出，避免檔案格式損毀
       canvas.toBlob(function(blob) {
+        if (!blob) {
+          alert('圖片生成失敗，請再試一次！');
+          statusModal.style.display = 'none';
+          render(false);
+          return;
+        }
+
+        const safeBlob = new Blob([blob], { type: 'image/jpeg' });
         const formData = new FormData();
-        formData.append('file', blob, 'mini_cd_design.png');
-        formData.append('timestamp', new Date().toISOString());
+        
+        // 帶入明確副檔名的檔案物件
+        formData.append('file', safeBlob, fileName + '.jpg');
+        
+        formData.append('customer_name', fileName);
+        formData.append('reservation_time', visitDate);
+        formData.append('file_name', fileName);
+        formData.append('visit_date', visitDate);
+        formData.append('submitted_at', new Date().toISOString());
 
         fetch(MAKE_WEBHOOK_URL, {
           method: 'POST',
@@ -1176,10 +1264,11 @@
         .then(response => {
           if (response.ok) {
             document.getElementById('statusTitle').innerText = '🎉 傳送成功！';
-            document.getElementById('statusDesc').innerText = '您的設計已成功送交給店家，請通知店員協助印製！';
+            document.getElementById('statusDesc').innerText = `您的設計已成功送交給店家！預約日期：${visitDate}，請依約前來店鋪製作！`;
+            document.getElementById('statusCloseBtnRow').style.display = 'flex';
             setTimeout(() => {
               statusModal.style.display = 'none';
-            }, 3000);
+            }, 3500);
           } else {
             throw new Error('Server response failed');
           }
@@ -1188,10 +1277,11 @@
           console.error(error);
           document.getElementById('statusTitle').innerText = '❌ 傳送失敗';
           document.getElementById('statusDesc').innerText = '網路連線異常或伺服器忙碌中，請再試一次或直接聯繫店員。';
+          document.getElementById('statusCloseBtnRow').style.display = 'flex';
         });
 
         render(false); 
-      }, 'image/png', 1.0);
+      }, 'image/jpeg', 0.95);
     }
 
     window.addEventListener('load', () => {
