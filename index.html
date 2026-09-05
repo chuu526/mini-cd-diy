@@ -36,7 +36,7 @@
       min-height: 50px;
     }
 
-    .header-left-group {
+    .top-left-group {
       display: flex;
       align-items: center;
       gap: 10px;
@@ -153,11 +153,12 @@
 
     .color-picker-bar {
       display: flex;
-      align-items: center;
-      justify-content: space-between;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 10px;
       background: #FFF8D7;
       border: 1px solid #ffe58f;
-      padding: 10px 16px;
+      padding: 12px 16px;
       border-radius: 6px;
       width: 100%;
       max-width: 850px;
@@ -168,10 +169,12 @@
       font-weight: bold;
     }
 
-    .color-picker-left {
+    .color-picker-row {
       display: flex;
       align-items: center;
       gap: 10px;
+      width: 100%;
+      flex-wrap: wrap;
     }
 
     .color-picker-bar input[type="color"] {
@@ -188,10 +191,11 @@
       display: flex; 
       gap: 6px; 
       flex-wrap: wrap;
+      flex: 1;
     }
 
     .preset-btn {
-      padding: 5px 10px;
+      padding: 6px 12px;
       font-size: 12px;
       border: 1px solid #ffe58f;
       border-radius: 4px;
@@ -289,32 +293,38 @@
     }
     @media (max-width: 600px) {
       .header-area { 
-        min-height: 50px; 
+        min-height: auto; 
         margin-bottom: 10px;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
       }
-      .header-left-group {
-        gap: 6px;
+      .top-left-group {
+        flex-direction: row-reverse;
+        justify-content: flex-end;
+        gap: 8px;
+        flex: 1;
       }
       .top-left-logo { 
         width: 50px; 
       }
       h2 { 
-        font-size: 15px; 
+        font-size: 16px; 
+        white-space: nowrap;
+      }
+      .top-right-history {
+        flex-shrink: 0;
       }
       .color-picker-bar { 
-        flex-direction: column; 
         align-items: flex-start; 
-        gap: 8px;
       }
-      .color-picker-left {
+      .color-picker-row {
         width: 100%;
-        justify-content: space-between;
-        flex-direction: row-reverse; /* 讓色票在右，文字在左 */
       }
       .color-presets {
-        width: 100%;
         display: flex;
         justify-content: space-between;
+        width: 100%;
       }
       .preset-btn {
         flex: 1;
@@ -328,9 +338,9 @@
 
   <div class="main-container">
     <div class="header-area">
-      <div class="header-left-group">
-        <img src="The創 LOGO.png" alt="The創 LOGO" class="top-left-logo">
+      <div class="top-left-group">
         <h2>迷你 CD 專輯 DIY</h2>
+        <img src="The創 LOGO.png" alt="The創 LOGO" class="top-left-logo">
       </div>
       <div class="top-right-history">
         <button class="btn-history-icon" onclick="undoAction()" title="返回上一步">↶</button>
@@ -348,15 +358,15 @@
     </div>
 
     <div class="color-picker-bar">
-      <div class="color-presets">
-        <button class="preset-btn" onclick="setPresetColor('#FFFFFF')">純白底</button>
-        <button class="preset-btn" onclick="setPresetColor('#FFFAF2')">米色底</button>
-        <button class="preset-btn" onclick="setPresetColor('#FFF0F5')">淺粉底</button>
-        <button class="preset-btn" onclick="setPresetColor('#E0F7FA')">淺藍底</button>
-      </div>
-      <div class="color-picker-left">
+      <span id="colorBarLabel">🎨 請先點選上方格子以設定個別底色：</span>
+      <div class="color-picker-row">
         <input type="color" id="zoneBgColorPicker" value="#FFFFFF" onchange="changeSelectedZoneBgColor(this.value)">
-        <span id="colorBarLabel">🎨 請點選上方格子以設定個別底色：</span>
+        <div class="color-presets">
+          <button class="preset-btn" onclick="setPresetColor('#FFFFFF')">純白底</button>
+          <button class="preset-btn" onclick="setPresetColor('#FFFAF2')">米色底</button>
+          <button class="preset-btn" onclick="setPresetColor('#FFF0F5')">淺粉底</button>
+          <button class="preset-btn" onclick="setPresetColor('#E0F7FA')">淺藍底</button>
+        </div>
       </div>
     </div>
 
