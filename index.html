@@ -30,26 +30,24 @@
       max-width: 850px;
       position: relative;
       display: flex;
-      justify-content: center;
+      justify-content: space-between;
       align-items: center;
       margin-bottom: 12px;
       min-height: 50px;
     }
 
+    .header-left-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
     .top-left-logo {
-      position: absolute;
-      left: 0;
-      top: 50%;
-      transform: translateY(-50%);
       width: 80px;
       height: auto;
     }
 
     .top-right-history {
-      position: absolute;
-      right: 0;
-      top: 50%;
-      transform: translateY(-50%);
       display: flex;
       gap: 6px;
       align-items: center;
@@ -170,15 +168,20 @@
       font-weight: bold;
     }
 
+    .color-picker-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
     .color-picker-bar input[type="color"] {
-      border: 2px solid #ffffff;
+      border: 1px solid #ffe58f;
       width: 35px;
       height: 35px;
-      border-radius: 6px;
+      border-radius: 4px;
       cursor: pointer;
-      background: #ffffff;
+      background: none;
       flex-shrink: 0;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.15);
     }
 
     .color-presets { 
@@ -188,7 +191,7 @@
     }
 
     .preset-btn {
-      padding: 5px 8px;
+      padding: 5px 10px;
       font-size: 12px;
       border: 1px solid #ffe58f;
       border-radius: 4px;
@@ -289,34 +292,34 @@
         min-height: 50px; 
         margin-bottom: 10px;
       }
+      .header-left-group {
+        gap: 6px;
+      }
       .top-left-logo { 
-        width: 55px; 
+        width: 50px; 
       }
       h2 { 
         font-size: 15px; 
       }
       .color-picker-bar { 
         flex-direction: column; 
-        align-items: stretch; 
+        align-items: flex-start; 
         gap: 8px;
       }
-      .color-picker-bar > div:first-of-type {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
+      .color-picker-left {
         width: 100%;
+        justify-content: space-between;
+        flex-direction: row-reverse; /* 讓色票在右，文字在左 */
       }
       .color-presets {
         width: 100%;
         display: flex;
         justify-content: space-between;
-        gap: 4px;
       }
       .preset-btn {
         flex: 1;
         text-align: center;
         padding: 6px 2px;
-        font-size: 11px;
       }
     }
   </style>
@@ -325,8 +328,10 @@
 
   <div class="main-container">
     <div class="header-area">
-      <img src="The創 LOGO.png" alt="The創 LOGO" class="top-left-logo">
-      <h2>迷你 CD 專輯 DIY</h2>
+      <div class="header-left-group">
+        <img src="The創 LOGO.png" alt="The創 LOGO" class="top-left-logo">
+        <h2>迷你 CD 專輯 DIY</h2>
+      </div>
       <div class="top-right-history">
         <button class="btn-history-icon" onclick="undoAction()" title="返回上一步">↶</button>
         <button class="btn-history-icon" onclick="redoAction()" title="重做下一步">↷</button>
@@ -349,9 +354,9 @@
         <button class="preset-btn" onclick="setPresetColor('#FFF0F5')">淺粉底</button>
         <button class="preset-btn" onclick="setPresetColor('#E0F7FA')">淺藍底</button>
       </div>
-      <div style="display: flex; align-items: center; gap: 8px;">
-        <span id="colorBarLabel" style="font-size: 13px;">🎨 請點選上方格子以設定底色：</span>
+      <div class="color-picker-left">
         <input type="color" id="zoneBgColorPicker" value="#FFFFFF" onchange="changeSelectedZoneBgColor(this.value)">
+        <span id="colorBarLabel">🎨 請點選上方格子以設定個別底色：</span>
       </div>
     </div>
 
@@ -521,8 +526,8 @@
       const picker = document.getElementById('zoneBgColorPicker');
       if (selectedZoneIndex !== -1) {
         const z = baseZones[selectedZoneIndex];
-        const displayName = z.groupId ? '書背2與封底內' : z.id.replace(/^\d+\./, '');
-        label.innerHTML = `🎨 【${displayName}】：`;
+        const displayName = z.groupId ? '書背 2 與封底內 (合併區)' : z.id.replace(/^\d+\./, '');
+        label.innerHTML = `🎨 設定【${displayName}】格子底色：`;
         picker.value = z.bgColor;
         picker.disabled = false;
 
@@ -533,7 +538,7 @@
           trashBtn.disabled = true;
         }
       } else {
-        label.innerHTML = `🎨 請點選上方格子以設定底色：`;
+        label.innerHTML = `🎨 請先點選上方格子以設定個別底色：`;
         picker.disabled = true;
         trashBtn.disabled = true;
       }
