@@ -156,6 +156,7 @@
     .color-picker-bar {
       display: flex;
       align-items: center;
+      justify-content: space-between;
       gap: 10px;
       background: #FFF8D7;
       border: 1px solid #ffe58f;
@@ -313,59 +314,34 @@
     @media (max-width: 900px) {
       .canvas-wrapper { width: 100%; height: auto; aspect-ratio: 1440 / 960; }
     }
-
-    /* 手機版特化樣式調整 */
+    
+    /* 手機版專屬微調樣式 */
     @media (max-width: 600px) {
       .header-area { 
-        justify-content: flex-start;
-        align-items: center;
-        min-height: 55px; 
+        min-height: 50px; 
         margin-bottom: 10px;
-        gap: 8px;
-        position: relative;
-        padding-right: 125px; /* 預留右側按鈕空間 */
+        justify-content: flex-start; /* 讓內容靠左對齊 */
+        padding-left: 65px;         /* 留出左側 Logo 的空間 */
       }
       .top-left-logo { 
-        position: static;
-        transform: none;
-        width: 50px; 
-        flex-shrink: 0;
+        width: 55px; 
       }
       h2 { 
-        font-size: 16px; 
+        font-size: 17px; 
         text-align: left;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
       }
-      .top-right-history { 
-        position: absolute;
-        right: 0;
-        top: 50%;
-        transform: translateY(-50%);
-      }
-      .btn-history-icon, .btn-trash-icon {
-        width: 34px;
-        height: 34px;
-        font-size: 15px;
-      }
-      .btn-trash-icon svg {
-        width: 16px;
-        height: 16px;
-      }
-
       .color-picker-bar { 
         flex-direction: column; 
         align-items: flex-start; 
         gap: 8px;
       }
+      /* 將文字說明與色彩方塊排在同一行 */
       .color-picker-bar > div:first-of-type {
         display: flex;
-        flex-direction: row-reverse; /* 讓自訂色塊移到左邊 */
-        justify-content: flex-end;
         align-items: center;
-        gap: 8px;
+        justify-content: space-between;
         width: 100%;
+        gap: 8px;
       }
       .color-presets {
         width: 100%;
@@ -402,7 +378,7 @@
     </div>
 
     <div class="color-picker-bar">
-      <div style="display: flex; align-items: center; gap: 8px;">
+      <div>
         <span id="colorBarLabel">🎨 請點選上方格子以設定個別底色：</span>
         <input type="color" id="zoneBgColorPicker" value="#FFFFFF" onchange="changeSelectedZoneBgColor(this.value)">
       </div>
@@ -1280,6 +1256,7 @@
         const formData = new FormData();
         
         formData.append('file', safeBlob, fileName + '.jpg');
+        
         formData.append('customer_name', fileName);
         formData.append('reservation_time', visitDate);
         formData.append('file_name', fileName);
