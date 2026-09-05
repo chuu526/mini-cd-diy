@@ -55,6 +55,15 @@
       align-items: center;
     }
 
+    .mobile-history-area {
+      display: none;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 15px;
+      width: 100%;
+    }
+
     .btn-history-icon {
       width: 38px;
       height: 38px;
@@ -179,7 +188,14 @@
       background: none;
     }
 
-    .color-presets { display: flex; gap: 6px; }
+    .color-picker-inner {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+    }
+
+    .color-presets { display: flex; gap: 6px; flex-wrap: wrap; }
 
     .preset-btn {
       padding: 5px 10px;
@@ -278,10 +294,20 @@
       .canvas-wrapper { width: 100%; height: auto; aspect-ratio: 1440 / 960; }
     }
     @media (max-width: 600px) {
-      .header-area { flex-direction: column; gap: 10px; min-height: auto; padding-top: 45px; }
-      .top-left-logo { position: absolute; left: 0; top: 0; transform: none; }
-      .top-right-history { position: absolute; right: 0; top: 0; transform: none; }
-      .color-picker-bar { flex-direction: column; align-items: flex-start; }
+      .header-area { 
+        flex-direction: column; 
+        gap: 8px; 
+        min-height: auto; 
+        padding-top: 45px; 
+        margin-bottom: 8px;
+      }
+      .top-left-logo { position: absolute; left: 0; top: 0; transform: none; width: 65px; }
+      .top-right-history { display: none; }
+      .mobile-history-area { display: flex; }
+      .color-picker-bar { flex-direction: column; align-items: flex-start; gap: 8px; }
+      .color-picker-inner { flex-direction: column; align-items: flex-start; gap: 8px; }
+      .color-presets { width: 100%; display: flex; justify-content: space-between; }
+      .preset-btn { flex: 1; text-align: center; padding: 6px 4px; }
     }
   </style>
 </head>
@@ -302,18 +328,31 @@
       </div>
     </div>
 
+    <!-- 手機版專用：標題下方按鈕群組 -->
+    <div class="mobile-history-area">
+      <button class="btn-history-icon" onclick="undoAction()" title="返回上一步">↶</button>
+      <button class="btn-history-icon" onclick="redoAction()" title="重做下一步">↷</button>
+      <button class="btn-trash-icon" id="mobileTrashBtn" onclick="clearSelectedZone()" title="清除選中照片" disabled>
+        <svg viewBox="0 0 24 24">
+          <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
+        </svg>
+      </button>
+    </div>
+
     <div class="canvas-wrapper" id="canvasWrapper">
       <canvas id="diyCanvas"></canvas>
     </div>
 
     <div class="color-picker-bar">
       <span id="colorBarLabel">🎨 請點選上方格子以設定個別底色：</span>
-      <input type="color" id="zoneBgColorPicker" value="#FFFFFF" onchange="changeSelectedZoneBgColor(this.value)">
-      <div class="color-presets">
-        <button class="preset-btn" onclick="setPresetColor('#FFFFFF')">純白底</button>
-        <button class="preset-btn" onclick="setPresetColor('#FFFAF2')">米色底</button>
-        <button class="preset-btn" onclick="setPresetColor('#FFF0F5')">淺粉底</button>
-        <button class="preset-btn" onclick="setPresetColor('#E0F7FA')">淺藍底</button>
+      <div class="color-picker-inner">
+        <input type="color" id="zoneBgColorPicker" value="#FFFFFF" onchange="changeSelectedZoneBgColor(this.value)">
+        <div class="color-presets">
+          <button class="preset-btn" onclick="setPresetColor('#FFFFFF')">純白底</button>
+          <button class="preset-btn" onclick="setPresetColor('#FFFAF2')">米色底</button>
+          <button class="preset-btn" onclick="setPresetColor('#FFF0F5')">淺粉底</button>
+          <button class="preset-btn" onclick="setPresetColor('#E0F7FA')">淺藍底</button>
+        </div>
       </div>
     </div>
 
@@ -370,6 +409,7 @@
     const ctx = canvas.getContext('2d');
     const globalFileInput = document.getElementById('globalFileInput');
     const trashBtn = document.getElementById('trashBtn');
+    const mobileTrashBtn = document.getElementById('mobileTrashBtn');
 
     let previewFinished = false;
     let selectedZoneIndex = -1;
@@ -390,13 +430,16 @@
     let redoStack = [];
     const MAX_HISTORY = 20;
 
-    function saveState() {
-      const currentState = baseZones.map(z => ({
+    function getCurrentStateSnapshot() {
+      return baseZones.map(z => ({
         bgColor: z.bgColor,
         imgSrc: z.img ? z.img.src : null,
         imgData: z.imgData ? { ...z.imgData } : null
       }));
-      undoStack.push(currentState);
+    }
+
+    function saveState() {
+      undoStack.push(getCurrentStateSnapshot());
       if (undoStack.length > MAX_HISTORY) undoStack.shift();
       redoStack = [];
     }
@@ -406,12 +449,12 @@
         baseZones[i].bgColor = savedZ.bgColor;
         if (savedZ.imgSrc) {
           if (baseZones[i].img && baseZones[i].img.src === savedZ.imgSrc) {
-            baseZones[i].imgData = { ...savedZ.imgData };
+            baseZones[i].imgData = savedZ.imgData ? { ...savedZ.imgData } : null;
           } else {
             const img = new Image();
             img.src = savedZ.imgSrc;
             baseZones[i].img = img;
-            baseZones[i].imgData = { ...savedZ.imgData };
+            baseZones[i].imgData = savedZ.imgData ? { ...savedZ.imgData } : null;
           }
         } else {
           baseZones[i].img = null;
@@ -423,23 +466,13 @@
 
     function undoAction() {
       if (undoStack.length === 0) return;
-      const currentState = baseZones.map(z => ({
-        bgColor: z.bgColor,
-        imgSrc: z.img ? z.img.src : null,
-        imgData: z.imgData ? { ...z.imgData } : null
-      }));
-      redoStack.push(currentState);
+      redoStack.push(getCurrentStateSnapshot());
       restoreState(undoStack.pop());
     }
 
     function redoAction() {
       if (redoStack.length === 0) return;
-      const currentState = baseZones.map(z => ({
-        bgColor: z.bgColor,
-        imgSrc: z.img ? z.img.src : null,
-        imgData: z.imgData ? { ...z.imgData } : null
-      }));
-      undoStack.push(currentState);
+      undoStack.push(getCurrentStateSnapshot());
       restoreState(undoStack.pop());
     }
 
@@ -468,12 +501,12 @@
         const targetZone = baseZones[selectedZoneIndex];
         const targetGroupId = targetZone.groupId;
 
+        saveState();
         baseZones.forEach(z => {
           if (z === targetZone || (targetGroupId && z.groupId === targetGroupId)) {
             z.bgColor = color;
           }
         });
-        saveState();
         render();
       }
     }
@@ -498,13 +531,16 @@
         const hasImg = baseZones.some(item => item.img && (item === z || (z.groupId && item.groupId === z.groupId)));
         if (hasImg) {
           trashBtn.disabled = false;
+          mobileTrashBtn.disabled = false;
         } else {
           trashBtn.disabled = true;
+          mobileTrashBtn.disabled = true;
         }
       } else {
         label.innerHTML = `🎨 請先點選上方格子以設定個別底色：`;
         picker.disabled = true;
         trashBtn.disabled = true;
+        mobileTrashBtn.disabled = true;
       }
     }
 
