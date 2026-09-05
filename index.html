@@ -156,7 +156,7 @@
     .color-picker-bar {
       display: flex;
       align-items: center;
-      gap: 10px;
+      justify-content: space-between;
       background: #FFF8D7;
       border: 1px solid #ffe58f;
       padding: 10px 16px;
@@ -171,13 +171,14 @@
     }
 
     .color-picker-bar input[type="color"] {
-      border: 1px solid #ffe58f;
+      border: 2px solid #ffffff;
       width: 35px;
       height: 35px;
-      border-radius: 4px;
+      border-radius: 6px;
       cursor: pointer;
-      background: none;
+      background: #ffffff;
       flex-shrink: 0;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.15);
     }
 
     .color-presets { 
@@ -187,7 +188,7 @@
     }
 
     .preset-btn {
-      padding: 5px 10px;
+      padding: 5px 8px;
       font-size: 12px;
       border: 1px solid #ffe58f;
       border-radius: 4px;
@@ -292,28 +293,30 @@
         width: 55px; 
       }
       h2 { 
-        font-size: 17px; 
+        font-size: 15px; 
       }
       .color-picker-bar { 
         flex-direction: column; 
-        align-items: flex-start; 
+        align-items: stretch; 
         gap: 8px;
       }
       .color-picker-bar > div:first-of-type {
         display: flex;
         align-items: center;
-        gap: 8px;
+        justify-content: space-between;
         width: 100%;
       }
       .color-presets {
         width: 100%;
         display: flex;
         justify-content: space-between;
+        gap: 4px;
       }
       .preset-btn {
         flex: 1;
         text-align: center;
         padding: 6px 2px;
+        font-size: 11px;
       }
     }
   </style>
@@ -340,15 +343,15 @@
     </div>
 
     <div class="color-picker-bar">
-      <div style="display: flex; align-items: center; gap: 8px;">
-        <span id="colorBarLabel">🎨 請點選上方格子以設定個別底色：</span>
-        <input type="color" id="zoneBgColorPicker" value="#FFFFFF" onchange="changeSelectedZoneBgColor(this.value)">
-      </div>
       <div class="color-presets">
         <button class="preset-btn" onclick="setPresetColor('#FFFFFF')">純白底</button>
         <button class="preset-btn" onclick="setPresetColor('#FFFAF2')">米色底</button>
         <button class="preset-btn" onclick="setPresetColor('#FFF0F5')">淺粉底</button>
         <button class="preset-btn" onclick="setPresetColor('#E0F7FA')">淺藍底</button>
+      </div>
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <span id="colorBarLabel" style="font-size: 13px;">🎨 請點選上方格子以設定底色：</span>
+        <input type="color" id="zoneBgColorPicker" value="#FFFFFF" onchange="changeSelectedZoneBgColor(this.value)">
       </div>
     </div>
 
@@ -518,8 +521,8 @@
       const picker = document.getElementById('zoneBgColorPicker');
       if (selectedZoneIndex !== -1) {
         const z = baseZones[selectedZoneIndex];
-        const displayName = z.groupId ? '書背 2 與封底內 (合併區)' : z.id.replace(/^\d+\./, '');
-        label.innerHTML = `🎨 設定【${displayName}】格子底色：`;
+        const displayName = z.groupId ? '書背2與封底內' : z.id.replace(/^\d+\./, '');
+        label.innerHTML = `🎨 【${displayName}】：`;
         picker.value = z.bgColor;
         picker.disabled = false;
 
@@ -530,7 +533,7 @@
           trashBtn.disabled = true;
         }
       } else {
-        label.innerHTML = `🎨 請先點選上方格子以設定個別底色：`;
+        label.innerHTML = `🎨 請點選上方格子以設定底色：`;
         picker.disabled = true;
         trashBtn.disabled = true;
       }
