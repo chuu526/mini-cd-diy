@@ -33,17 +33,17 @@
       justify-content: space-between;
       align-items: center;
       margin-bottom: 12px;
-      min-height: 50px;
+      min-height: 60px;
     }
 
     .top-left-group {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 15px;
     }
 
     .top-left-logo {
-      width: 80px;
+      width: 98px; /* 放大 40% (70px * 1.4) */
       height: auto;
     }
 
@@ -97,7 +97,14 @@
       fill: #ffffff;
     }
 
-    h2 { margin: 0; font-size: 22px; color: #4a3b32; }
+    h2 { 
+      margin: 0; 
+      font-size: 22px; 
+      color: #4a3b32; 
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+    }
 
     .canvas-wrapper { 
       width: 850px; 
@@ -153,9 +160,9 @@
 
     .color-picker-bar {
       display: flex;
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
       background: #FFF8D7;
       border: 1px solid #ffe58f;
       padding: 12px 16px;
@@ -169,18 +176,17 @@
       font-weight: bold;
     }
 
-    .color-picker-row {
+    .color-picker-inline-group {
       display: flex;
       align-items: center;
-      gap: 10px;
-      width: 100%;
+      gap: 8px;
       flex-wrap: wrap;
     }
 
     .color-picker-bar input[type="color"] {
       border: 1px solid #ffe58f;
-      width: 35px;
-      height: 35px;
+      width: 32px;
+      height: 32px;
       border-radius: 4px;
       cursor: pointer;
       background: none;
@@ -191,11 +197,10 @@
       display: flex; 
       gap: 6px; 
       flex-wrap: wrap;
-      flex: 1;
     }
 
     .preset-btn {
-      padding: 6px 12px;
+      padding: 5px 10px;
       font-size: 12px;
       border: 1px solid #ffe58f;
       border-radius: 4px;
@@ -306,9 +311,11 @@
         flex: 1;
       }
       .top-left-logo { 
-        width: 50px; 
+        width: 70px; /* 手機版同步微調放大比例 */
       }
       h2 { 
+        position: static;
+        transform: none;
         font-size: 16px; 
         white-space: nowrap;
       }
@@ -317,8 +324,9 @@
       }
       .color-picker-bar { 
         align-items: flex-start; 
+        flex-direction: column;
       }
-      .color-picker-row {
+      .color-picker-inline-group {
         width: 100%;
       }
       .color-presets {
@@ -329,7 +337,7 @@
       .preset-btn {
         flex: 1;
         text-align: center;
-        padding: 6px 2px;
+        padding: 5px 2px;
       }
     }
   </style>
@@ -339,9 +347,9 @@
   <div class="main-container">
     <div class="header-area">
       <div class="top-left-group">
-        <h2>迷你 CD 專輯 DIY</h2>
         <img src="The創 LOGO.png" alt="The創 LOGO" class="top-left-logo">
       </div>
+      <h2>迷你 CD 專輯 DIY</h2>
       <div class="top-right-history">
         <button class="btn-history-icon" onclick="undoAction()" title="返回上一步">↶</button>
         <button class="btn-history-icon" onclick="redoAction()" title="重做下一步">↷</button>
@@ -359,7 +367,7 @@
 
     <div class="color-picker-bar">
       <span id="colorBarLabel">🎨 請先點選上方格子以設定個別底色：</span>
-      <div class="color-picker-row">
+      <div class="color-picker-inline-group">
         <input type="color" id="zoneBgColorPicker" value="#FFFFFF" onchange="changeSelectedZoneBgColor(this.value)">
         <div class="color-presets">
           <button class="preset-btn" onclick="setPresetColor('#FFFFFF')">純白底</button>
