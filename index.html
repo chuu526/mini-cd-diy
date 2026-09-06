@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>鍵帽DIY</title>
+  <title>迷你 CD 專輯 DIY</title>
+
   <style>
     body { 
       font-family: sans-serif; 
@@ -18,7 +19,7 @@
 
     .main-container {
       width: 100%;
-      max-width: 950px;
+      max-width: 900px;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -26,7 +27,7 @@
 
     .header-area {
       width: 100%;
-      max-width: 900px;
+      max-width: 850px;
       position: relative;
       display: flex;
       justify-content: space-between;
@@ -99,15 +100,15 @@
     h2 { margin: 0; font-size: 22px; color: #4a3b32; }
 
     .canvas-wrapper { 
-      width: 900px; 
-      height: 758.82px; 
+      width: 850px; 
+      height: 566.67px; 
       display: flex; 
       justify-content: center; 
       margin-bottom: 15px;
       overflow: hidden; 
       position: relative;
-      background: #FFFFFF; 
       border: 2px solid #D4C3B3; 
+      background: #FFFFFF; 
       box-shadow: 0 4px 12px rgba(0,0,0,0.08); 
       border-radius: 8px; 
     }
@@ -125,7 +126,7 @@
       flex-wrap: wrap; 
       justify-content: center; 
       width: 100%; 
-      max-width: 900px; 
+      max-width: 850px; 
       margin-bottom: 12px;
     }
 
@@ -139,19 +140,14 @@
       min-width: 130px; 
       text-align: center; 
       border: 1px solid #D4C3B3;
-      text-decoration: none;
-      display: inline-flex;
-      justify-content: center;
-      align-items: center;
-      box-sizing: border-box;
     }
     
-    .btn-form { 
+    .btn-toggle { 
       background: #deb887; 
       color: #ffffff; 
       border-color: #cca677; 
     } 
-    .btn-form:hover { background: #cea877; }
+    .btn-toggle:hover { background: #cea877; }
 
     .btn-checkout { background: #9E7B66; color: #ffffff; border-color: #8b6a55; } 
 
@@ -164,7 +160,7 @@
       padding: 10px 16px;
       border-radius: 6px;
       width: 100%;
-      max-width: 900px;
+      max-width: 850px;
       box-sizing: border-box;
       margin-bottom: 12px;
       font-size: 14px;
@@ -209,7 +205,7 @@
       font-size: 13px; 
       color: #d48800; 
       width: 100%; 
-      max-width: 900px; 
+      max-width: 850px; 
       box-sizing: border-box; 
     }
     .tip-box ul { margin: 5px 0 0 18px; padding: 0; }
@@ -240,10 +236,10 @@
     
     .preview-img-container {
       width: 100%;
-      height: 210px;
+      height: 190px;
       border: 1px solid #D4C3B3;
       border-radius: 6px;
-      margin-bottom: 15px;
+      margin-bottom: 12px;
       background: #f9f9f9;
       display: flex;
       justify-content: center;
@@ -255,6 +251,31 @@
       height: 100%;
       object-fit: contain;
       display: block;
+    }
+
+    .form-group-row {
+      text-align: left;
+      margin-bottom: 12px;
+    }
+    .form-group-row label {
+      display: block;
+      font-size: 13px;
+      font-weight: bold;
+      color: #4a3b32;
+      margin-bottom: 4px;
+    }
+    .form-group-row label .required-star {
+      color: #e53935;
+      margin-left: 2px;
+    }
+    .form-group-row input {
+      width: 100%;
+      padding: 9px 10px;
+      border: 1px solid #D4C3B3;
+      border-radius: 6px;
+      font-size: 14px;
+      box-sizing: border-box;
+      background: #fff;
     }
 
     .modal-btn-row {
@@ -288,8 +309,45 @@
     }
     .btn-modal-close:hover { background: #d2bc94; }
 
-    @media (max-width: 950px) {
-      .canvas-wrapper { width: 100%; height: auto; aspect-ratio: 102 / 86; }
+    @media (max-width: 900px) {
+      .canvas-wrapper { width: 100%; height: auto; aspect-ratio: 1440 / 960; }
+    }
+    @media (max-width: 600px) {
+      .header-area { 
+        min-height: auto; 
+        margin-bottom: 10px;
+        justify-content: space-between;
+      }
+      .header-left-group {
+        gap: 6px;
+      }
+      .top-left-logo { 
+        width: 55px; 
+      }
+      h2 { 
+        font-size: 16px; 
+      }
+      .color-picker-bar { 
+        flex-direction: column; 
+        align-items: flex-start; 
+        gap: 8px;
+      }
+      .color-picker-bar > div:first-of-type {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        width: 100%;
+      }
+      .color-presets {
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+      }
+      .preset-btn {
+        flex: 1;
+        text-align: center;
+        padding: 6px 2px;
+      }
     }
   </style>
 </head>
@@ -298,8 +356,8 @@
   <div class="main-container">
     <div class="header-area">
       <div class="header-left-group">
-        <img src="The創 LOGO.png" alt="The創 LOGO" class="top-left-logo" onerror="this.style.display='none'">
-        <h2>鍵帽DIY</h2>
+        <img src="The創 LOGO.png" alt="The創 LOGO" class="top-left-logo">
+        <h2>迷你 CD 專輯 DIY</h2>
       </div>
       <div class="top-right-history">
         <button class="btn-history-icon" onclick="undoAction()" title="返回上一步">↶</button>
@@ -318,28 +376,27 @@
 
     <div class="color-picker-bar">
       <div style="display: flex; align-items: center; gap: 8px;">
-        <span id="colorBarLabel">🎨 請點選上方任一鍵帽以設定底色：</span>
+        <span id="colorBarLabel">🎨 請點選上方格子以設定個別底色：</span>
       </div>
       <div class="color-presets">
         <input type="color" id="zoneBgColorPicker" value="#FFFFFF" onchange="changeSelectedZoneBgColor(this.value)">
-        <button class="preset-btn" onclick="setPresetColor('#FFFFFF')">純白</button>
-        <button class="preset-btn" onclick="setPresetColor('#FFFAF2')">米白</button>
-        <button class="preset-btn" onclick="setPresetColor('#222222')">酷黑</button>
-        <button class="preset-btn" onclick="setPresetColor('#E0F7FA')">淺藍</button>
-        <button class="preset-btn" onclick="setPresetColor('#FFF0F5')">柔粉</button>
+        <button class="preset-btn" onclick="setPresetColor('#FFFFFF')">純白底</button>
+        <button class="preset-btn" onclick="setPresetColor('#FFFAF2')">米色底</button>
+        <button class="preset-btn" onclick="setPresetColor('#FFF0F5')">淺粉底</button>
+        <button class="preset-btn" onclick="setPresetColor('#E0F7FA')">淺藍底</button>
       </div>
     </div>
 
     <div class="controls">
-      <button class="btn btn-checkout" onclick="openPreviewModal()">🎁 保存圖片(保存後記得上傳)</button>
-      <a href="https://forms.gle/1bcfaixLEmddUhMk9" target="_blank" class="btn btn-form">✨ 上傳圖片給店家(記得先保存)</a>
+      <button class="btn btn-toggle" id="toggleBtn" onclick="toggleBleedLines()">切換：預覽成品效果</button>
+      <button class="btn btn-checkout" onclick="openPreviewModal()">🎁 完成設計，傳送至店家</button>
     </div>
 
     <div class="tip-box">
       <b>✂️ 操作說明：</b> 
       <ul>
-        <li>點擊任一直角鍵帽格子可上傳照片，上傳後可自由拖曳、縮放或旋轉圖片。</li>
-        <li>製作完成記得上傳到表單呦，告知店員就會幫您製作了!</li>
+        <li>點擊任一格子可上傳照片，並直接在下方切換該格子的獨立底色。</li>
+        <li>製作完成會上傳給店家，再到店裡提供檔案名稱就可以囉。</li>
         <li>The創🌳台中市北區一中街173號。</li>
       </ul>
     </div>
@@ -348,16 +405,37 @@
   <!-- 完成預覽視窗 -->
   <div class="modal-overlay" id="previewModal" onclick="checkOutsideClose(event, 'previewModal')">
     <div class="modal-content">
-      <h3>🎉 您的鍵帽排版完成！</h3>
-      <p>請確認下方預覽圖，點擊下載即可將高畫質排版圖片儲存至您的裝置！</p>
+      <h3>🎉 您的迷你 CD 排版完成！</h3>
+      <p>請確認預覽圖，並填寫檔案名稱與預計來店製作日期（皆為必填），即可傳送給店家！</p>
       
       <div class="preview-img-container">
         <img id="modalPreviewImg" src="" alt="排版預覽圖">
       </div>
 
+      <div class="form-group-row">
+        <label for="inputFileName">📁 檔案名稱 / 客戶稱呼：<span class="required-star">*</span></label>
+        <input type="text" id="inputFileName" placeholder="例如：我的迷你CD專屬設計" required>
+      </div>
+
+      <div class="form-group-row">
+        <label for="inputVisitDate">📅 預計來店製作日期：<span class="required-star">*</span></label>
+        <input type="date" id="inputVisitDate" required>
+      </div>
+
       <div class="modal-btn-row">
-        <button class="btn-modal-upload" onclick="confirmAndDownload()">確認並下載圖片</button>
+        <button class="btn-modal-upload" onclick="confirmAndUpload()">直接上傳檔案</button>
         <button class="btn-modal-close" onclick="closePreviewModal()">關閉視窗</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 傳送中或完成/失敗提示視窗 -->
+  <div class="modal-overlay" id="statusModal" onclick="checkOutsideClose(event, 'statusModal')">
+    <div class="modal-content">
+      <h3 id="statusTitle">📤 正在傳送至店家...</h3>
+      <p id="statusDesc">正在將高畫質 JPG 檔案與預約資訊傳送到店家後端，請稍候片刻...</p>
+      <div class="modal-btn-row" id="statusCloseBtnRow" style="display: none; margin-top: 15px;">
+        <button class="btn-modal-close" onclick="closeStatusModal()">關閉視窗</button>
       </div>
     </div>
   </div>
@@ -365,8 +443,10 @@
   <input type="file" id="globalFileInput" accept="image/*" style="display: none;">
 
   <script>
-    const DESIGN_WIDTH = 1200;
-    const DESIGN_HEIGHT = 1011.76;
+    const DESIGN_WIDTH = 1440;
+    const DESIGN_HEIGHT = 960;
+
+    const MAKE_WEBHOOK_URL = 'https://hook.eu1.make.com/9e4eiqnv1d4kxp2ge7oedkqguz9n1m92'; 
 
     const canvas = document.getElementById('diyCanvas');
     const wrapper = document.getElementById('canvasWrapper');
@@ -374,48 +454,20 @@
     const globalFileInput = document.getElementById('globalFileInput');
     const trashBtn = document.getElementById('trashBtn');
 
+    let previewFinished = false;
     let selectedZoneIndex = -1;
 
-    let baseZones = [];
-    (function initKeycapZones() {
-      const frameW = DESIGN_WIDTH; 
-      const frameH = DESIGN_HEIGHT;  
-      
-      const originX = 0; 
-      const originY = 0; 
+    const LINE_COLOR = '#E0E0E0';
 
-      const scaleX = DESIGN_WIDTH / 102;
-      const scaleY = DESIGN_HEIGHT / 86;
-
-      const ml = 10 * scaleX;     
-      const mt = 9 * scaleY;      
-      const size = 10.5 * scaleX; 
-      
-      const gapX = (102 - 10 - 26 - 52.5) / 4 * scaleX;
-      const gapY = (86 - 9 - 9 - 52.5) / 4 * scaleY;
-
-      for (let r = 0; r < 5; r++) {
-        for (let c = 0; c < 5; c++) {
-          const x = originX + ml + c * (size + gapX);
-          const top = originY + mt + r * (size + gapY);
-          baseZones.push({
-            id: `直角鍵帽_${r+1}_${c+1}`,
-            x: x,
-            top: top,
-            w: size,
-            h: size,
-            type: 'keycap',
-            labelMain: `第 ${r+1} 排 ${c+1}`,
-            labelSub: '上傳',
-            img: null,
-            bgColor: '#FFFFFF',
-            imgData: null,
-            imgSrcBlob: null,
-            currentBlobUrl: null
-          });
-        }
-      }
-    })();
+    let baseZones = [
+      { id: '1.封面外', x: 72, top: 45, w: 403, h: 428, type: 'rect', labelMain: '封面外', labelSub: '+ 點擊上傳', img: null, bgColor: '#FFFFFF', imgData: null, imgSrcBlob: null },
+      { id: '2.封面內', x: 475, top: 45, w: 403, h: 428, type: 'rect', labelMain: '封面內', labelSub: '+ 點擊上傳', img: null, bgColor: '#FFFFFF', imgData: null, imgSrcBlob: null },
+      { id: '3.CD光碟', x: 963, top: 65, w: 389, h: 389, type: 'cd', labelMain: 'CD 封面', labelSub: '+ 點擊上傳', img: null, bgColor: '#FFFFFF', imgData: null, imgSrcBlob: null },
+      { id: '4.封底外(含折邊)', x: 72, top: 505, w: 518, h: 398, type: 'rect', labelMain: '封底外', labelSub: '(含左折邊) + 點擊上傳', foldLineX: 126, img: null, bgColor: '#FFFFFF', imgData: null, imgSrcBlob: null },
+      { id: '5.書背1', x: 590, top: 505, w: 29, h: 398, type: 'rect', isSpine: true, labelSpine: '書背1', img: null, bgColor: '#FFFFFF', imgData: null, imgSrcBlob: null },
+      { id: '6.書背2', x: 619, top: 505, w: 29, h: 398, type: 'rect', isSpine: true, labelSpine: '', groupId: 'spine2_inner_back', img: null, bgColor: '#FFFFFF', imgData: null, imgSrcBlob: null },
+      { id: '7.封底內(含折邊)', x: 648, top: 505, w: 514, h: 398, type: 'rect', labelMain: '封底內', labelSub: '(含右折邊) + 點擊上傳', foldLineX: 1108, groupId: 'spine2_inner_back', img: null, bgColor: '#FFFFFF', imgData: null, imgSrcBlob: null }
+    ];
 
     let undoStack = [];
     let redoStack = [];
@@ -491,8 +543,15 @@
 
     function changeSelectedZoneBgColor(color) {
       if (selectedZoneIndex !== -1) {
+        const targetZone = baseZones[selectedZoneIndex];
+        const targetGroupId = targetZone.groupId;
+
         saveState();
-        baseZones[selectedZoneIndex].bgColor = color;
+        baseZones.forEach(z => {
+          if (z === targetZone || (targetGroupId && z.groupId === targetGroupId)) {
+            z.bgColor = color;
+          }
+        });
         render();
       }
     }
@@ -509,17 +568,19 @@
       const picker = document.getElementById('zoneBgColorPicker');
       if (selectedZoneIndex !== -1) {
         const z = baseZones[selectedZoneIndex];
-        label.innerHTML = `🎨 設定【${z.id}】底色：`;
+        const displayName = z.groupId ? '書背 2 與封底內 (合併區)' : z.id.replace(/^\d+\./, '');
+        label.innerHTML = `🎨 設定【${displayName}】格子底色：`;
         picker.value = z.bgColor;
         picker.disabled = false;
 
-        if (z.img) {
+        const hasImg = baseZones.some(item => item.img && (item === z || (z.groupId && item.groupId === z.groupId)));
+        if (hasImg) {
           trashBtn.disabled = false;
         } else {
           trashBtn.disabled = true;
         }
       } else {
-        label.innerHTML = `🎨 請先點選上方任一鍵帽以設定底色：`;
+        label.innerHTML = `🎨 請先點選上方格子以設定個別底色：`;
         picker.disabled = true;
         trashBtn.disabled = true;
       }
@@ -538,53 +599,184 @@
       baseZones.forEach((z) => {
         ctx.save();
         ctx.beginPath();
-        ctx.rect(z.x, z.top, z.w, z.h);
+        if (z.type === 'cd') {
+          const centerX = z.x + z.w/2;
+          const centerY = z.top + z.h/2;
+          ctx.arc(centerX, centerY, z.w/2, 0, Math.PI * 2, false);
+          ctx.arc(centerX, centerY, 29, 0, Math.PI * 2, true);
+        } else {
+          ctx.rect(z.x, z.top, z.w, z.h);
+        }
         ctx.clip();
 
         ctx.fillStyle = z.bgColor;
         ctx.fill();
 
-        if (z.img && z.imgData) {
+        let targetImgObj = z.img;
+        let targetImgDataObj = z.imgData;
+        if (!targetImgObj && z.groupId) {
+          const groupPartner = baseZones.find(item => item.groupId === z.groupId && item.img);
+          if (groupPartner) {
+            targetImgObj = groupPartner.img;
+            targetImgDataObj = groupPartner.imgData;
+          }
+        }
+
+        if (targetImgObj && targetImgDataObj) {
           ctx.save();
           ctx.imageSmoothingEnabled = true;
           ctx.imageSmoothingQuality = 'high';
-          const centerX = z.x + z.w/2 + (z.imgData.offsetX || 0);
-          const centerY = z.top + z.h/2 + (z.imgData.offsetY || 0);
+          let centerX, centerY;
+          if (z.groupId) {
+            const groupMembers = baseZones.filter(item => item.groupId === z.groupId);
+            const minX = Math.min(...groupMembers.map(m => m.x));
+            const maxX = Math.max(...groupMembers.map(m => m.x + m.w));
+            const minY = Math.min(...groupMembers.map(m => m.top));
+            const maxY = Math.max(...groupMembers.map(m => m.top + m.h));
+            centerX = (minX + maxX) / 2 + (targetImgDataObj.offsetX || 0);
+            centerY = (minY + maxY) / 2 + (targetImgDataObj.offsetY || 0);
+          } else {
+            centerX = z.x + z.w/2 + (targetImgDataObj.offsetX || 0);
+            centerY = z.top + z.h/2 + (targetImgDataObj.offsetY || 0);
+          }
           
           ctx.translate(centerX, centerY);
-          ctx.rotate((z.imgData.angle || 0) * Math.PI / 180);
-          ctx.scale(z.imgData.scale || 1, z.imgData.scale || 1);
+          ctx.rotate((targetImgDataObj.angle || 0) * Math.PI / 180);
+          ctx.scale(targetImgDataObj.scale || 1, targetImgDataObj.scale || 1);
           
-          ctx.drawImage(z.img, -z.img.width/2, -z.img.height/2);
+          ctx.drawImage(targetImgObj, -targetImgObj.width/2, -targetImgObj.height/2);
           ctx.restore();
         } else if (!isExporting) {
-          ctx.fillStyle = '#7C6A58';
+          ctx.fillStyle = z.isSpine ? '#8C7B6B' : '#5C4A3E';
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
-          ctx.font = 'bold 14px sans-serif';
-          ctx.fillText('上傳', z.x + z.w/2, z.top + z.h/2);
+
+          if (z.isSpine) {
+            if (z.labelSpine) {
+              ctx.save();
+              ctx.translate(z.x + z.w/2, z.top + z.h/2);
+              ctx.rotate(-Math.PI / 2);
+              ctx.font = 'bold 20px sans-serif';
+              ctx.fillText(z.labelSpine, 0, 0);
+              ctx.restore();
+            }
+          } else {
+            ctx.font = 'bold 27px sans-serif';
+            ctx.fillText(z.labelMain, z.x + z.w/2, z.top + z.h/2 - 18);
+            ctx.fillStyle = '#A8998A';
+            ctx.font = '20px sans-serif';
+            ctx.fillText(z.labelSub, z.x + z.w/2, z.top + z.h/2 + 18);
+          }
         }
         ctx.restore();
 
-        ctx.save();
-        ctx.strokeStyle = '#B8A898';
-        ctx.lineWidth = isExporting ? 1 : 1.8;
+        ctx.strokeStyle = LINE_COLOR;
+        ctx.lineWidth = isExporting ? 1.2 : 2.2;
+        
         ctx.beginPath();
-        ctx.rect(z.x, z.top, z.w, z.h);
-        ctx.stroke();
-        ctx.restore();
+        if (z.type === 'cd') {
+          const centerX = z.x + z.w/2;
+          const centerY = z.top + z.h/2;
+          ctx.arc(centerX, centerY, z.w/2, 0, Math.PI * 2);
+          ctx.stroke();
+          ctx.beginPath();
+          ctx.arc(centerX, centerY, 29, 0, Math.PI * 2);
+          ctx.stroke();
+        } else {
+          ctx.rect(z.x, z.top, z.w, z.h);
+          ctx.stroke();
+        }
+
+        if (z.foldLineX) {
+          ctx.save();
+          ctx.strokeStyle = LINE_COLOR;
+          ctx.lineWidth = isExporting ? 1.2 : 1.8;
+          ctx.beginPath();
+          ctx.moveTo(z.foldLineX, z.top);
+          ctx.lineTo(z.foldLineX, z.top + z.h);
+          ctx.stroke();
+          ctx.restore();
+        }
       });
+
+      ctx.strokeStyle = LINE_COLOR;
+      ctx.lineWidth = isExporting ? 1.2 : 2.7;
+      ctx.strokeRect(72, 45, 806, 428);
+      ctx.strokeRect(72, 505, 1090, 398);
+
+      if (isExporting) {
+        ctx.save();
+        ctx.strokeStyle = LINE_COLOR;
+        ctx.lineWidth = 1.2;
+        ctx.strokeRect(86, 59, 778, 400);
+        const cd = baseZones[2];
+        ctx.beginPath();
+        ctx.arc(cd.x + cd.w/2, cd.top + cd.h/2, 184, 0, Math.PI * 2);
+        ctx.stroke();
+
+        ctx.strokeRect(92, 521, 1050, 369);
+        ctx.restore();
+      } else if (previewFinished) {
+        ctx.save();
+        ctx.fillStyle = '#FFFFFF';
+        ctx.beginPath();
+        ctx.rect(0, 0, DESIGN_WIDTH, DESIGN_HEIGHT);
+        ctx.rect(86 + 778, 59, -778, 400);
+        const cd = baseZones[2];
+        ctx.arc(cd.x + cd.w/2, cd.top + cd.h/2, 184, 0, Math.PI * 2, true);
+        ctx.rect(92 + 1050, 521, -1050, 369);
+        ctx.fill('evenodd');
+
+        ctx.strokeStyle = LINE_COLOR;
+        ctx.lineWidth = 1.5;
+        ctx.strokeRect(86, 59, 778, 400);
+        ctx.beginPath();
+        ctx.arc(cd.x + cd.w/2, cd.top + cd.h/2, 184, 0, Math.PI * 2);
+        ctx.stroke();
+
+        ctx.strokeRect(92, 521, 1050, 369);
+        ctx.restore();
+      } else {
+        ctx.save();
+        ctx.strokeStyle = '#E53935'; 
+        ctx.lineWidth = 2.7;
+        ctx.setLineDash([9, 9]);     
+        ctx.strokeRect(86, 59, 778, 400);
+        const cd = baseZones[2];
+        ctx.beginPath();
+        ctx.arc(cd.x + cd.w/2, cd.top + cd.h/2, 184, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.strokeRect(92, 521, 1050, 369);
+        ctx.restore();
+      }
 
       if (!isExporting && selectedZoneIndex !== -1) {
         const z = baseZones[selectedZoneIndex];
-        if (z.img && z.imgData) {
+        let hasActiveImg = z.img && z.imgData;
+        if (!hasActiveImg && z.groupId) {
+          const partner = baseZones.find(item => item.groupId === z.groupId && item.img);
+          if (partner) hasActiveImg = true;
+        }
+
+        if (hasActiveImg) {
           drawTransformControls(z);
         } else {
           ctx.strokeStyle = '#1890ff';
-          ctx.lineWidth = 2.5;
-          ctx.beginPath();
-          ctx.rect(z.x, z.top, z.w, z.h);
-          ctx.stroke();
+          ctx.lineWidth = 3.5;
+          if (z.groupId) {
+            const groupMembers = baseZones.filter(item => item.groupId === z.groupId);
+            const minX = Math.min(...groupMembers.map(m => m.x));
+            const maxX = Math.max(...groupMembers.map(m => m.x + m.w));
+            const minY = Math.min(...groupMembers.map(m => m.top));
+            const maxY = Math.max(...groupMembers.map(m => m.top + m.h));
+            ctx.strokeRect(minX, minY, maxX - minX, maxY - minY);
+          } else if (z.type === 'cd') {
+            ctx.beginPath();
+            ctx.arc(z.x + z.w/2, z.top + z.h/2, z.w/2, 0, Math.PI * 2);
+            ctx.stroke();
+          } else {
+            ctx.strokeRect(z.x, z.top, z.w, z.h);
+          }
         }
         updateColorPickerUI();
       } else {
@@ -594,12 +786,33 @@
     }
 
     function drawTransformControls(z) {
-      const targetImg = z.img;
-      const targetData = z.imgData;
+      let targetImg = z.img;
+      let targetData = z.imgData;
+      let targetZoneForCenter = z;
+
+      if (!targetImg && z.groupId) {
+        const partner = baseZones.find(item => item.groupId === z.groupId && item.img);
+        if (partner) {
+          targetImg = partner.img;
+          targetData = partner.imgData;
+          targetZoneForCenter = partner;
+        }
+      }
       if (!targetData) return;
 
-      const centerX = z.x + z.w/2 + targetData.offsetX;
-      const centerY = z.top + z.h/2 + targetData.offsetY;
+      let centerX, centerY;
+      if (z.groupId) {
+        const groupMembers = baseZones.filter(item => item.groupId === z.groupId);
+        const minX = Math.min(...groupMembers.map(m => m.x));
+        const maxX = Math.max(...groupMembers.map(m => m.x + m.w));
+        const minY = Math.min(...groupMembers.map(m => m.top));
+        const maxY = Math.max(...groupMembers.map(m => m.top + m.h));
+        centerX = (minX + maxX) / 2 + targetData.offsetX;
+        centerY = (minY + maxY) / 2 + targetData.offsetY;
+      } else {
+        centerX = targetZoneForCenter.x + targetZoneForCenter.w/2 + targetData.offsetX;
+        centerY = targetZoneForCenter.top + targetZoneForCenter.h/2 + targetData.offsetY;
+      }
 
       const w = targetImg.width * targetData.scale;
       const h = targetImg.height * targetData.scale;
@@ -609,17 +822,17 @@
       ctx.rotate(targetData.angle * Math.PI / 180);
 
       ctx.strokeStyle = '#1890ff';
-      ctx.lineWidth = 2;
+      ctx.lineWidth = 2.7;
       ctx.strokeRect(-w/2, -h/2, w, h);
 
       ctx.beginPath();
       ctx.moveTo(0, -h/2);
-      ctx.lineTo(0, -h/2 - 30);
+      ctx.lineTo(0, -h/2 - 45);
       ctx.strokeStyle = '#1890ff';
       ctx.stroke();
 
       ctx.beginPath();
-      ctx.arc(0, -h/2 - 30, 8, 0, Math.PI * 2);
+      ctx.arc(0, -h/2 - 45, 12, 0, Math.PI * 2);
       ctx.fillStyle = '#1890ff';
       ctx.fill();
 
@@ -627,19 +840,40 @@
       handles.forEach(hCoord => {
         ctx.fillStyle = '#ffffff';
         ctx.strokeStyle = '#1890ff';
-        ctx.lineWidth = 2;
-        ctx.fillRect(hCoord.x - 6, hCoord.y - 6, 12, 12);
-        ctx.strokeRect(hCoord.x - 6, hCoord.y - 6, 12, 12);
+        ctx.lineWidth = 2.7;
+        ctx.fillRect(hCoord.x - 9, hCoord.y - 9, 18, 18);
+        ctx.strokeRect(hCoord.x - 9, hCoord.y - 9, 18, 18);
       });
       ctx.restore();
     }
 
     function getTransformedHandleCoords(z) {
-      const targetImg = z.img;
-      const targetData = z.imgData;
+      let targetImg = z.img;
+      let targetData = z.imgData;
+      let targetZoneForCenter = z;
 
-      const centerX = z.x + z.w/2 + targetData.offsetX;
-      const centerY = z.top + z.h/2 + targetData.offsetY;
+      if (!targetImg && z.groupId) {
+        const partner = baseZones.find(item => item.groupId === z.groupId && item.img);
+        if (partner) {
+          targetImg = partner.img;
+          targetData = partner.imgData;
+          targetZoneForCenter = partner;
+        }
+      }
+
+      let centerX, centerY;
+      if (z.groupId) {
+        const groupMembers = baseZones.filter(item => item.groupId === z.groupId);
+        const minX = Math.min(...groupMembers.map(m => m.x));
+        const maxX = Math.max(...groupMembers.map(m => m.x + m.w));
+        const minY = Math.min(...groupMembers.map(m => m.top));
+        const maxY = Math.max(...groupMembers.map(m => m.top + m.h));
+        centerX = (minX + maxX) / 2 + targetData.offsetX;
+        centerY = (minY + maxY) / 2 + targetData.offsetY;
+      } else {
+        centerX = targetZoneForCenter.x + targetZoneForCenter.w/2 + targetData.offsetX;
+        centerY = targetZoneForCenter.top + targetZoneForCenter.h/2 + targetData.offsetY;
+      }
 
       const w = targetImg.width * targetData.scale;
       const h = targetImg.height * targetData.scale;
@@ -651,8 +885,8 @@
         y: centerY + lh.x * Math.sin(rad) + lh.y * Math.cos(rad)
       }));
       const rotHandle = {
-        x: centerX - (-h/2 - 30) * Math.sin(rad),
-        y: centerY + (-h/2 - 30) * Math.cos(rad)
+        x: centerX - (-h/2 - 45) * Math.sin(rad),
+        y: centerY + (-h/2 - 45) * Math.cos(rad)
       };
       return { globalHandles, rotHandle };
     }
@@ -667,21 +901,9 @@
       const clientY = e.touches ? e.touches[0].clientY : e.clientY;
       const rawX = (clientX - rect.left) * (DESIGN_WIDTH / rect.width);
       const rawY = (clientY - rect.top) * (DESIGN_HEIGHT / rect.height);
+      
       return { x: rawX, y: rawY };
     }
-
-    function getHitZone(x, y) {
-      for (let i = 0; i < baseZones.length; i++) {
-        const z = baseZones[i];
-        if (x >= z.x && x <= z.x + z.w && y >= z.top && y <= z.top + z.h) {
-          return i;
-        }
-      }
-      return -1;
-    }
-
-    canvas.addEventListener('mousedown', handleCanvasInteraction);
-    canvas.addEventListener('touchstart', handleCanvasInteraction);
 
     function handleCanvasInteraction(e) {
       if (e.touches && e.touches.length > 1) return;
@@ -691,7 +913,13 @@
 
       if (selectedZoneIndex !== -1) {
         const z = baseZones[selectedZoneIndex];
-        if (z.img && z.imgData) {
+        let hasActiveImg = z.img && z.imgData;
+        if (!hasActiveImg && z.groupId) {
+          const partner = baseZones.find(item => item.groupId === z.groupId && item.img);
+          if (partner) hasActiveImg = true;
+        }
+
+        if (hasActiveImg) {
           const { globalHandles, rotHandle } = getTransformedHandleCoords(z);
 
           if (Math.hypot(x - rotHandle.x, y - rotHandle.y) <= hitThreshold) {
@@ -703,9 +931,30 @@
             if (Math.hypot(x - handle.x, y - handle.y) <= hitThreshold) {
               saveState();
               activeMode = 'scale'; startX = x; startY = y; 
-              initialScale = z.imgData.scale;
-              const centerX = z.x + z.w/2 + z.imgData.offsetX;
-              const centerY = z.top + z.h/2 + z.imgData.offsetY;
+              let targetData = z.imgData;
+              let targetZoneForCenter = z;
+              if (!targetData && z.groupId) {
+                const partner = baseZones.find(item => item.groupId === z.groupId && item.img);
+                if (partner) {
+                  targetData = partner.imgData;
+                  targetZoneForCenter = partner;
+                }
+              }
+              initialScale = targetData.scale;
+              
+              let centerX, centerY;
+              if (z.groupId) {
+                const groupMembers = baseZones.filter(item => item.groupId === z.groupId);
+                const minX = Math.min(...groupMembers.map(m => m.x));
+                const maxX = Math.max(...groupMembers.map(m => m.x + m.w));
+                const minY = Math.min(...groupMembers.map(m => m.top));
+                const maxY = Math.max(...groupMembers.map(m => m.top + m.h));
+                centerX = (minX + maxX) / 2 + targetData.offsetX;
+                centerY = (minY + maxY) / 2 + targetData.offsetY;
+              } else {
+                centerX = targetZoneForCenter.x + targetZoneForCenter.w/2 + targetData.offsetX;
+                centerY = targetZoneForCenter.top + targetZoneForCenter.h/2 + targetData.offsetY;
+              }
               initialDist = Math.hypot(x - centerX, y - centerY);
               return;
             }
@@ -717,8 +966,13 @@
       if (hitIndex !== -1) {
         selectedZoneIndex = hitIndex;
         const clickedZone = baseZones[hitIndex];
+        let checkHasImg = clickedZone.img;
+        if (!checkHasImg && clickedZone.groupId) {
+          const partner = baseZones.find(item => item.groupId === clickedZone.groupId && item.img);
+          if (partner) checkHasImg = partner.img;
+        }
 
-        if (!clickedZone.img) {
+        if (!checkHasImg) {
           globalFileInput.value = '';
           globalFileInput.click();
         } else {
@@ -732,6 +986,7 @@
       render();
     }
 
+    // 完美無失真高畫質讀取 (使用 URL.createObjectURL 直接載入原始檔案 Blob)
     globalFileInput.addEventListener('change', function(e) {
       const file = e.target.files[0];
       if (!file || selectedZoneIndex === -1) return;
@@ -741,135 +996,309 @@
       img.onload = function() {
         saveState();
         const z = baseZones[selectedZoneIndex];
-        z.img = img;
-        z.imgSrcBlob = blobUrl;
-        z.currentBlobUrl = blobUrl;
+        const sharedGroupId = z.groupId;
 
-        const scaleX = z.w / img.width;
-        const scaleY = z.h / img.height;
-        const initialScaleVal = Math.max(scaleX, scaleY) * 1.1;
+        let defaultScale;
+        if (sharedGroupId) {
+          const groupMembers = baseZones.filter(item => item.groupId === sharedGroupId);
+          const minX = Math.min(...groupMembers.map(m => m.x));
+          const maxX = Math.max(...groupMembers.map(m => m.x + m.w));
+          const minY = Math.min(...groupMembers.map(m => m.top));
+          const maxY = Math.max(...groupMembers.map(m => m.top + m.h));
+          const groupW = maxX - minX;
+          const groupH = maxY - minY;
+          defaultScale = Math.max(groupW / img.width, groupH / img.height);
+        } else {
+          defaultScale = Math.max(z.w / img.width, z.h / img.height);
+        }
 
-        z.imgData = {
-          offsetX: 0,
-          offsetY: 0,
-          scale: initialScaleVal,
-          angle: 0
-        };
+        baseZones.forEach(item => {
+          if (item === z || (sharedGroupId && item.groupId === sharedGroupId)) {
+            item.img = img;
+            item.currentBlobUrl = blobUrl;
+            item.imgSrcBlob = blobUrl;
+            item.imgData = { 
+              offsetX: 0, 
+              offsetY: 0, 
+              scale: defaultScale, 
+              angle: 0 
+            };
+          }
+        });
         render();
       };
       img.src = blobUrl;
     });
 
-    window.addEventListener('mousemove', handlePointerMove);
-    window.addEventListener('touchmove', handlePointerMove);
+    function handleMove(e) {
+      if (e.touches && e.touches.length > 1) return; 
+      if (!activeMode) return;
+      if (e.cancelable) e.preventDefault();
 
-    function handlePointerMove(e) {
-      if (!activeMode || selectedZoneIndex === -1) return;
-      const { x, y } = getCanvasPos(e);
+      if (selectedZoneIndex === -1) return;
       const z = baseZones[selectedZoneIndex];
-      const dx = x - startX;
-      const dy = y - startY;
+      let targetData = z.imgData;
+      let targetZoneForCenter = z;
+      let sharedGroupId = z.groupId;
 
-      if (activeMode === 'move') {
-        z.imgData.offsetX += dx;
-        z.imgData.offsetY += dy;
-      } else if (activeMode === 'scale') {
-        const centerX = z.x + z.w/2 + z.imgData.offsetX;
-        const centerY = z.top + z.h/2 + z.imgData.offsetY;
-        const currentDist = Math.hypot(x - centerX, y - centerY);
-        if (initialDist > 0) {
-          z.imgData.scale = Math.max(0.1, initialScale * (currentDist / initialDist));
-        }
-      } else if (activeMode === 'rotate') {
-        const centerX = z.x + z.w/2 + z.imgData.offsetX;
-        const centerY = z.top + z.h/2 + z.imgData.offsetY;
-        const rad = Math.atan2(y - centerY, x - centerX);
-        let rawAngle = rad * (180 / Math.PI) + 90;
-
-        const snapTargets = [0, 90, 180, 270, 360, -90, -180, -270];
-        const snapThreshold = 5;
-
-        let normalizedAngle = ((rawAngle % 360) + 360) % 360;
-        
-        let snapped = false;
-        for (let target of snapTargets) {
-          let normTarget = ((target % 360) + 360) % 360;
-          let diff = Math.abs(normalizedAngle - normTarget);
-          if (diff <= snapThreshold || diff >= 360 - snapThreshold) {
-            z.imgData.angle = target;
-            snapped = true;
-            break;
-          }
-        }
-
-        if (!snapped) {
-          z.imgData.angle = rawAngle;
+      if (!targetData && z.groupId) {
+        const partner = baseZones.find(item => item.groupId === z.groupId && item.img);
+        if (partner) {
+          targetData = partner.imgData;
+          targetZoneForCenter = partner;
         }
       }
+      if (!targetData) return;
 
-      startX = x;
-      startY = y;
+      let centerX, centerY;
+      if (sharedGroupId) {
+        const groupMembers = baseZones.filter(item => item.groupId === sharedGroupId);
+        const minX = Math.min(...groupMembers.map(m => m.x));
+        const maxX = Math.max(...groupMembers.map(m => m.x + m.w));
+        const minY = Math.min(...groupMembers.map(m => m.top));
+        const maxY = Math.max(...groupMembers.map(m => m.top + m.h));
+        centerX = (minX + maxX) / 2 + targetData.offsetX;
+        centerY = (minY + maxY) / 2 + targetData.offsetY;
+      } else {
+        centerX = targetZoneForCenter.x + targetZoneForCenter.w/2 + targetData.offsetX;
+        centerY = targetZoneForCenter.top + targetZoneForCenter.h/2 + targetData.offsetY;
+      }
+
+      const { x, y } = getCanvasPos(e);
+
+      if (activeMode === 'move') {
+        const dx = x - startX;
+        const dy = y - startY;
+        
+        baseZones.forEach(item => {
+          if (item.imgData && (item === z || (sharedGroupId && item.groupId === sharedGroupId))) {
+            item.imgData.offsetX += dx;
+            item.imgData.offsetY += dy;
+          }
+        });
+        startX = x; startY = y;
+      } else if (activeMode === 'scale') {
+        const currentDist = Math.hypot(x - centerX, y - centerY);
+        if (initialDist > 0) {
+          const newScale = Math.min(Math.max(0.05, initialScale * (currentDist / initialDist)), 5);
+          baseZones.forEach(item => {
+            if (item.imgData && (item === z || (sharedGroupId && item.groupId === sharedGroupId))) {
+              item.imgData.scale = newScale;
+            }
+          });
+        }
+      } else if (activeMode === 'rotate') {
+        let angle = Math.atan2(y - centerY, x - centerX) * (180 / Math.PI) + 90;
+        angle = (angle % 360 + 360) % 360;
+        [0, 90, 180, 270, 360].forEach(target => {
+          if (Math.abs(angle - target) < 6) angle = target % 360;
+        });
+        baseZones.forEach(item => {
+          if (item.imgData && (item === z || (sharedGroupId && item.groupId === sharedGroupId))) {
+            item.imgData.angle = angle;
+          }
+        });
+      }
       render();
     }
 
-    window.addEventListener('mouseup', endPointerInteraction);
-    window.addEventListener('touchend', endPointerInteraction);
-
-    function endPointerInteraction() {
-      activeMode = null;
+    function handleStart(e) {
+      if (e.touches && e.touches.length > 1) return; 
+      handleCanvasInteraction(e);
     }
 
-    function clearSelectedZone() {
+    function handleEnd() { 
+      activeMode = null; 
+    }
+
+    canvas.addEventListener('mousedown', handleCanvasInteraction);
+    window.addEventListener('mousemove', handleMove);
+    window.addEventListener('mouseup', handleEnd);
+
+    canvas.addEventListener('touchstart', handleStart, { passive: true });
+    window.addEventListener('touchmove', handleMove, { passive: false });
+    window.addEventListener('touchend', handleEnd);
+
+    function getHitZone(x, y) {
+      return baseZones.findIndex(z => {
+        if (z.type === 'cd') {
+          const dx = x - (z.x + z.w/2), dy = y - (z.top + z.h/2);
+          const dist = Math.sqrt(dx*dx + dy*dy);
+          return dist <= z.w/2 && dist >= 29;
+        }
+        return x >= z.x && x <= z.x + z.w && y >= z.top && y <= z.top + z.h;
+      });
+    }
+
+    canvas.addEventListener('wheel', (e) => {
+      e.preventDefault();
       if (selectedZoneIndex !== -1) {
-        saveState();
         const z = baseZones[selectedZoneIndex];
-        z.img = null;
-        z.imgData = null;
-        z.imgSrcBlob = null;
-        z.currentBlobUrl = null;
-        trashBtn.disabled = true;
-        render();
+        let targetData = z.imgData;
+        let sharedGroupId = z.groupId;
+        if (!targetData && z.groupId) {
+          const partner = baseZones.find(item => item.groupId === z.groupId && item.img);
+          if (partner) targetData = partner.imgData;
+        }
+
+        if (targetData) {
+          saveState();
+          const newScale = Math.min(Math.max(0.05, targetData.scale * (e.deltaY < 0 ? 1.05 : 0.95)), 5);
+          baseZones.forEach(item => {
+            if (item.imgData && (item === z || (sharedGroupId && item.groupId === sharedGroupId))) {
+              item.imgData.scale = newScale;
+            }
+          });
+          render();
+        }
       }
+    }, { passive: false });
+
+    function toggleBleedLines() { 
+      previewFinished = !previewFinished; 
+      const btn = document.getElementById('toggleBtn');
+      btn.innerText = previewFinished ? '切換：顯示出血線' : '切換：預覽成品效果';
+      render(); 
+    }
+    
+    function clearSelectedZone() { 
+      if (selectedZoneIndex !== -1) {
+        const z = baseZones[selectedZoneIndex];
+        const sharedGroupId = z.groupId;
+        let hasImg = z.img;
+        if (!hasImg && sharedGroupId) {
+          const partner = baseZones.find(item => item.groupId === sharedGroupId && item.img);
+          if (partner) hasImg = partner.img;
+        }
+
+        if (hasImg) {
+          saveState();
+          baseZones.forEach(item => {
+            if (item === z || (sharedGroupId && item.groupId === sharedGroupId)) {
+              item.img = null;
+              item.currentBlobUrl = null;
+              item.imgSrcBlob = null;
+              item.imgData = null;
+            }
+          });
+          render(); 
+        }
+      } 
     }
 
     function openPreviewModal() {
       selectedZoneIndex = -1;
       render(true);
-      const dataUrl = canvas.toDataURL('image/jpeg', 0.92);
-      document.getElementById('modalPreviewImg').src = dataUrl;
-      document.getElementById('previewModal').style.display = 'flex';
-      render(false);
+
+      canvas.toBlob(function(blob) {
+        const url = URL.createObjectURL(blob);
+        document.getElementById('modalPreviewImg').src = url;
+        document.getElementById('previewModal').style.display = 'flex';
+        render(false);
+      }, 'image/jpeg', 0.98);
     }
 
     function closePreviewModal() {
       document.getElementById('previewModal').style.display = 'none';
     }
 
-    function checkOutsideClose(e, modalId) {
-      if (e.target.id === modalId) {
+    function closeStatusModal() {
+      document.getElementById('statusModal').style.display = 'none';
+    }
+
+    function checkOutsideClose(event, modalId) {
+      if (event.target.id === modalId) {
         document.getElementById(modalId).style.display = 'none';
       }
     }
 
-    function confirmAndDownload() {
-      render(true);
+    function confirmAndUpload() {
+      const fileNameInput = document.getElementById('inputFileName');
+      const visitDateInput = document.getElementById('inputVisitDate');
+
+      const fileName = fileNameInput.value.trim();
+      const visitDate = visitDateInput.value;
+
+      if (!fileName) {
+        alert('請填寫「檔案名稱 / 客戶稱呼」！');
+        fileNameInput.focus();
+        return;
+      }
+
+      if (!visitDate) {
+        alert('請選擇「預計來店製作日期」！');
+        visitDateInput.focus();
+        return;
+      }
+
+      closePreviewModal();
+
+      if (!MAKE_WEBHOOK_URL) {
+        alert('尚未設定 Make Webhook 網址！');
+        return;
+      }
+
+      const statusModal = document.getElementById('statusModal');
+      document.getElementById('statusTitle').innerText = '📤 正在傳送至店家...';
+      document.getElementById('statusDesc').innerText = `正在將高畫質檔案「${fileName}」與預約日期 (${visitDate}) 傳送到店家後端，請稍候片刻...`;
+      document.getElementById('statusCloseBtnRow').style.display = 'none';
+      statusModal.style.display = 'flex';
+
+      selectedZoneIndex = -1;
+      render(true); 
+
       canvas.toBlob(function(blob) {
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `我的客製鍵帽排版.jpg`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-        render(false);
-        closePreviewModal();
-      }, 'image/jpeg', 0.92);
+        if (!blob) {
+          alert('圖片生成失敗，請再試一次！');
+          statusModal.style.display = 'none';
+          render(false);
+          return;
+        }
+
+        const safeBlob = new Blob([blob], { type: 'image/jpeg' });
+        const formData = new FormData();
+        
+        formData.append('file', safeBlob, fileName + '.jpg');
+        
+        formData.append('customer_name', fileName);
+        formData.append('reservation_time', visitDate);
+        formData.append('file_name', fileName);
+        formData.append('visit_date', visitDate);
+        formData.append('submitted_at', new Date().toISOString());
+
+        fetch(MAKE_WEBHOOK_URL, {
+          method: 'POST',
+          body: formData
+        })
+        .then(response => {
+          if (response.ok) {
+            document.getElementById('statusTitle').innerText = '🎉 傳送成功！';
+            document.getElementById('statusDesc').innerText = `您的設計已成功送交給店家！預約日期：${visitDate}，請依約前來店鋪製作！`;
+            document.getElementById('statusCloseBtnRow').style.display = 'flex';
+            setTimeout(() => {
+              statusModal.style.display = 'none';
+            }, 3500);
+          } else {
+            throw new Error('Server response failed');
+          }
+        })
+        .catch(error => {
+          console.error(error);
+          document.getElementById('statusTitle').innerText = '❌ 傳送失敗';
+          document.getElementById('statusDesc').innerText = '網路連線異常或伺服器忙碌中，請再試一次或直接聯繫店員。';
+          document.getElementById('statusCloseBtnRow').style.display = 'flex';
+        });
+
+        render(false); 
+      }, 'image/jpeg', 0.98);
     }
 
-    window.onload = function() {
+    window.addEventListener('load', () => {
       initCanvasSize();
-    };
+    });
+    setTimeout(() => {
+      initCanvasSize();
+    }, 100);
   </script>
 </body>
 </html>
