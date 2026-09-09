@@ -149,6 +149,13 @@
     } 
     .btn-toggle:hover { background: #cea877; }
 
+    .btn-sticker {
+      background: #d4a373;
+      color: #ffffff;
+      border-color: #bc8a5b;
+    }
+    .btn-sticker:hover { background: #c59363; }
+
     .btn-checkout { background: #9E7B66; color: #ffffff; border-color: #8b6a55; } 
 
     .color-picker-bar {
@@ -236,10 +243,10 @@
     
     .preview-img-container {
       width: 100%;
-      height: 190px;
+      height: 170px;
       border: 1px solid #D4C3B3;
       border-radius: 6px;
-      margin-bottom: 12px;
+      margin-bottom: 10px;
       background: #f9f9f9;
       display: flex;
       justify-content: center;
@@ -251,6 +258,19 @@
       height: 100%;
       object-fit: contain;
       display: block;
+    }
+
+    .warning-alert-box {
+      background: #fff2f0;
+      border: 1.5px solid #ffccc7;
+      color: #cf1322;
+      padding: 10px 12px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: bold;
+      text-align: left;
+      margin-bottom: 12px;
+      line-height: 1.4;
     }
 
     .form-group-row {
@@ -283,18 +303,20 @@
       gap: 10px;
       margin-top: 5px;
     }
+    
     .btn-modal-upload { 
-      background: #9E7B66; 
+      background: #e65100; 
       color: white; 
       padding: 12px 15px; 
-      border: none; 
+      border: 2px solid #bf360c; 
       border-radius: 6px; 
       cursor: pointer; 
       font-weight: bold; 
-      flex: 1; 
+      flex: 1.2; 
       font-size: 14px;
+      box-shadow: 0 4px 10px rgba(230, 81, 0, 0.3);
     }
-    .btn-modal-upload:hover { background: #8b6a55; }
+    .btn-modal-upload:hover { background: #bf360c; }
 
     .btn-modal-close { 
       background: #dfcca6; 
@@ -304,7 +326,7 @@
       border-radius: 6px; 
       cursor: pointer; 
       font-weight: bold; 
-      flex: 1; 
+      flex: 0.8; 
       font-size: 14px;
     }
     .btn-modal-close:hover { background: #d2bc94; }
@@ -362,7 +384,7 @@
       <div class="top-right-history">
         <button class="btn-history-icon" onclick="undoAction()" title="返回上一步">↶</button>
         <button class="btn-history-icon" onclick="redoAction()" title="重做下一步">↷</button>
-        <button class="btn-trash-icon" id="trashBtn" onclick="clearSelectedZone()" title="清除選中照片" disabled>
+        <button class="btn-trash-icon" id="trashBtn" onclick="clearSelectedZone()" title="清除選中照片或貼紙" disabled>
           <svg viewBox="0 0 24 24">
             <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
           </svg>
@@ -389,6 +411,7 @@
 
     <div class="controls">
       <button class="btn btn-toggle" id="toggleBtn" onclick="toggleBleedLines()">切換：預覽成品效果</button>
+      <button class="btn btn-sticker" onclick="triggerAddSticker()">➕ 新增裝飾貼紙</button>
       <button class="btn btn-checkout" onclick="openPreviewModal()">🎁 完成設計，傳送至店家</button>
     </div>
 
@@ -396,6 +419,7 @@
       <b>✂️ 操作說明：</b> 
       <ul>
         <li>點擊任一格子可上傳照片，並直接在下方切換該格子的獨立底色。</li>
+        <li>點擊「新增裝飾貼紙」可隨意上傳裝飾圖案，貼紙不限框框、可自由縮放與移動（可縮到極小放入書背）。</li>
         <li>製作完成會上傳給店家，再到店裡提供檔案名稱就可以囉。</li>
         <li>The創🌳台中市北區一中街173號。</li>
       </ul>
@@ -406,10 +430,16 @@
   <div class="modal-overlay" id="previewModal" onclick="checkOutsideClose(event, 'previewModal')">
     <div class="modal-content">
       <h3>🎉 您的迷你 CD 排版完成！</h3>
-      <p>請確認預覽圖，並填寫檔案名稱與預計來店製作日期（皆為必填），即可傳送給店家！</p>
+      <p>請確認預覽圖無誤後填寫資訊。送出前請再次檢查排版！</p>
       
       <div class="preview-img-container">
         <img id="modalPreviewImg" src="" alt="排版預覽圖">
+      </div>
+
+      <div class="warning-alert-box">
+        ⚠️ <b>貼心提醒：</b><br>
+        1. <b>點擊送出即視同購買此次體驗</b>，請確認排版與照片無誤再傳送。<br>
+        2. 請勿重複點擊上傳或重複送出，以免重複扣除製作次數。
       </div>
 
       <div class="form-group-row">
@@ -423,8 +453,8 @@
       </div>
 
       <div class="modal-btn-row">
-        <button class="btn-modal-upload" onclick="confirmAndUpload()">直接上傳檔案</button>
-        <button class="btn-modal-close" onclick="closePreviewModal()">關閉視窗</button>
+        <button class="btn-modal-upload" onclick="confirmAndUpload()">🚨 確認無誤，送出檔案</button>
+        <button class="btn-modal-close" onclick="closePreviewModal()">返回修改</button>
       </div>
     </div>
   </div>
@@ -441,6 +471,7 @@
   </div>
 
   <input type="file" id="globalFileInput" accept="image/*" style="display: none;">
+  <input type="file" id="stickerFileInput" accept="image/*" style="display: none;">
 
   <script>
     const DESIGN_WIDTH = 1440;
@@ -452,10 +483,12 @@
     const wrapper = document.getElementById('canvasWrapper');
     const ctx = canvas.getContext('2d');
     const globalFileInput = document.getElementById('globalFileInput');
+    const stickerFileInput = document.getElementById('stickerFileInput');
     const trashBtn = document.getElementById('trashBtn');
 
     let previewFinished = false;
-    let selectedZoneIndex = -1;
+    let selectedZoneIndex = -1;       // 0 ~ 6 代表格子，若為 -1 則檢查貼紙
+    let selectedStickerIndex = -1;    // 0 ~ N 代表貼紙索引，若為 -1 則無貼紙被選中
 
     const LINE_COLOR = '#E0E0E0';
 
@@ -469,16 +502,30 @@
       { id: '7.封底內(含折邊)', x: 648, top: 505, w: 514, h: 398, type: 'rect', labelMain: '封底內', labelSub: '(含右折邊) + 點擊上傳', foldLineX: 1108, groupId: 'spine2_inner_back', img: null, bgColor: '#FFFFFF', imgData: null, imgSrcBlob: null }
     ];
 
+    let stickers = []; // 自由貼紙陣列
+
     let undoStack = [];
     let redoStack = [];
     const MAX_HISTORY = 20;
 
     function getCurrentStateSnapshot() {
-      return baseZones.map(z => ({
-        bgColor: z.bgColor,
-        imgSrcBlob: z.imgSrcBlob,
-        imgData: z.imgData ? { ...z.imgData } : null
-      }));
+      return {
+        zones: baseZones.map(z => ({
+          bgColor: z.bgColor,
+          imgSrcBlob: z.imgSrcBlob,
+          imgData: z.imgData ? { ...z.imgData } : null
+        })),
+        stickers: stickers.map(s => ({
+          id: s.id,
+          imgSrcBlob: s.imgSrcBlob,
+          x: s.x,
+          y: s.y,
+          scale: s.scale,
+          angle: s.angle,
+          width: s.width,
+          height: s.height
+        }))
+      };
     }
 
     function saveState() {
@@ -488,7 +535,7 @@
     }
 
     function restoreState(state) {
-      state.forEach((savedZ, i) => {
+      state.zones.forEach((savedZ, i) => {
         baseZones[i].bgColor = savedZ.bgColor;
         baseZones[i].imgSrcBlob = savedZ.imgSrcBlob;
         baseZones[i].imgData = savedZ.imgData ? { ...savedZ.imgData } : null;
@@ -506,6 +553,24 @@
           baseZones[i].currentBlobUrl = null;
         }
       });
+
+      stickers = state.stickers.map(savedS => {
+        const img = new Image();
+        img.onload = () => { render(); };
+        img.src = savedS.imgSrcBlob;
+        return {
+          id: savedS.id,
+          img: img,
+          imgSrcBlob: savedS.imgSrcBlob,
+          x: savedS.x,
+          y: savedS.y,
+          scale: savedS.scale,
+          angle: savedS.angle,
+          width: savedS.width,
+          height: savedS.height
+        };
+      });
+
       render();
     }
 
@@ -572,13 +637,11 @@
         label.innerHTML = `🎨 設定【${displayName}】格子底色：`;
         picker.value = z.bgColor;
         picker.disabled = false;
-
-        const hasImg = baseZones.some(item => item.img && (item === z || (z.groupId && item.groupId === z.groupId)));
-        if (hasImg) {
-          trashBtn.disabled = false;
-        } else {
-          trashBtn.disabled = true;
-        }
+        trashBtn.disabled = false;
+      } else if (selectedStickerIndex !== -1) {
+        label.innerHTML = `🎨 已選中裝飾貼紙 (可自由移動或刪除)`;
+        picker.disabled = true;
+        trashBtn.disabled = false;
       } else {
         label.innerHTML = `🎨 請先點選上方格子以設定個別底色：`;
         picker.disabled = true;
@@ -699,22 +762,64 @@
         }
       });
 
+      stickers.forEach((s) => {
+        if (!s.img) return;
+        ctx.save();
+        ctx.translate(s.x, s.y);
+        ctx.rotate(s.angle * Math.PI / 180);
+        ctx.scale(s.scale, s.scale);
+        ctx.drawImage(s.img, -s.width/2, -s.height/2);
+        ctx.restore();
+      });
+
       ctx.strokeStyle = LINE_COLOR;
       ctx.lineWidth = isExporting ? 1.2 : 2.7;
       ctx.strokeRect(72, 45, 806, 428);
       ctx.strokeRect(72, 505, 1090, 398);
+
+      const drawCrossHairMarksTop = (x, y, w, h) => {
+        ctx.save();
+        ctx.strokeStyle = LINE_COLOR;
+        ctx.lineWidth = 1.2;
+        const markLen = 25;
+        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(DESIGN_WIDTH, y); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(0, y + h); ctx.lineTo(DESIGN_WIDTH, y + h); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, y); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(x + w, 0); ctx.lineTo(x + w, y); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(x, y + h); ctx.lineTo(x, y + h + markLen); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(x + w, y + h); ctx.lineTo(x + w, y + h + markLen); ctx.stroke();
+        ctx.restore();
+      };
+
+      const drawCrossHairMarksBottom = (x, y, w, h) => {
+        ctx.save();
+        ctx.strokeStyle = LINE_COLOR;
+        ctx.lineWidth = 1.2;
+        const markLen = 25;
+        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(DESIGN_WIDTH, y); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(0, y + h); ctx.lineTo(DESIGN_WIDTH, y + h); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(x, y - markLen); ctx.lineTo(x, y); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(x + w, y - markLen); ctx.lineTo(x + w, y); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(x, y + h); ctx.lineTo(x, DESIGN_HEIGHT); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(x + w, y + h); ctx.lineTo(x + w, DESIGN_HEIGHT); ctx.stroke();
+        ctx.restore();
+      };
 
       if (isExporting) {
         ctx.save();
         ctx.strokeStyle = LINE_COLOR;
         ctx.lineWidth = 1.2;
         ctx.strokeRect(86, 59, 778, 400);
+        drawCrossHairMarksTop(86, 59, 778, 400);
+
         const cd = baseZones[2];
         ctx.beginPath();
         ctx.arc(cd.x + cd.w/2, cd.top + cd.h/2, 184, 0, Math.PI * 2);
         ctx.stroke();
 
         ctx.strokeRect(92, 521, 1050, 369);
+        drawCrossHairMarksBottom(92, 521, 1050, 369);
+
         ctx.restore();
       } else if (previewFinished) {
         ctx.save();
@@ -730,11 +835,15 @@
         ctx.strokeStyle = LINE_COLOR;
         ctx.lineWidth = 1.5;
         ctx.strokeRect(86, 59, 778, 400);
+        drawCrossHairMarksTop(86, 59, 778, 400);
+
         ctx.beginPath();
         ctx.arc(cd.x + cd.w/2, cd.top + cd.h/2, 184, 0, Math.PI * 2);
         ctx.stroke();
 
         ctx.strokeRect(92, 521, 1050, 369);
+        drawCrossHairMarksBottom(92, 521, 1050, 369);
+
         ctx.restore();
       } else {
         ctx.save();
@@ -750,38 +859,40 @@
         ctx.restore();
       }
 
-      if (!isExporting && selectedZoneIndex !== -1) {
-        const z = baseZones[selectedZoneIndex];
-        let hasActiveImg = z.img && z.imgData;
-        if (!hasActiveImg && z.groupId) {
-          const partner = baseZones.find(item => item.groupId === z.groupId && item.img);
-          if (partner) hasActiveImg = true;
-        }
-
-        if (hasActiveImg) {
-          drawTransformControls(z);
-        } else {
-          ctx.strokeStyle = '#1890ff';
-          ctx.lineWidth = 3.5;
-          if (z.groupId) {
-            const groupMembers = baseZones.filter(item => item.groupId === z.groupId);
-            const minX = Math.min(...groupMembers.map(m => m.x));
-            const maxX = Math.max(...groupMembers.map(m => m.x + m.w));
-            const minY = Math.min(...groupMembers.map(m => m.top));
-            const maxY = Math.max(...groupMembers.map(m => m.top + m.h));
-            ctx.strokeRect(minX, minY, maxX - minX, maxY - minY);
-          } else if (z.type === 'cd') {
-            ctx.beginPath();
-            ctx.arc(z.x + z.w/2, z.top + z.h/2, z.w/2, 0, Math.PI * 2);
-            ctx.stroke();
-          } else {
-            ctx.strokeRect(z.x, z.top, z.w, z.h);
+      if (!isExporting) {
+        if (selectedZoneIndex !== -1) {
+          const z = baseZones[selectedZoneIndex];
+          let hasActiveImg = z.img && z.imgData;
+          if (!hasActiveImg && z.groupId) {
+            const partner = baseZones.find(item => item.groupId === z.groupId && item.img);
+            if (partner) hasActiveImg = true;
           }
+
+          if (hasActiveImg) {
+            drawTransformControls(z);
+          } else {
+            ctx.strokeStyle = '#1890ff';
+            ctx.lineWidth = 3.5;
+            if (z.groupId) {
+              const groupMembers = baseZones.filter(item => item.groupId === z.groupId);
+              const minX = Math.min(...groupMembers.map(m => m.x));
+              const maxX = Math.max(...groupMembers.map(m => m.x + m.w));
+              const minY = Math.min(...groupMembers.map(m => m.top));
+              const maxY = Math.max(...groupMembers.map(m => m.top + m.h));
+              ctx.strokeRect(minX, minY, maxX - minX, maxY - minY);
+            } else if (z.type === 'cd') {
+              ctx.beginPath();
+              ctx.arc(z.x + z.w/2, z.top + z.h/2, z.w/2, 0, Math.PI * 2);
+              ctx.stroke();
+            } else {
+              ctx.strokeRect(z.x, z.top, z.w, z.h);
+            }
+          }
+        } else if (selectedStickerIndex !== -1 && stickers[selectedStickerIndex]) {
+          drawStickerTransformControls(stickers[selectedStickerIndex]);
         }
-        updateColorPickerUI();
-      } else {
-        updateColorPickerUI();
       }
+      updateColorPickerUI();
       ctx.restore();
     }
 
@@ -847,6 +958,40 @@
       ctx.restore();
     }
 
+    function drawStickerTransformControls(s) {
+      const w = s.width * s.scale;
+      const h = s.height * s.scale;
+
+      ctx.save();
+      ctx.translate(s.x, s.y);
+      ctx.rotate(s.angle * Math.PI / 180);
+
+      ctx.strokeStyle = '#722ed1'; 
+      ctx.lineWidth = 2.7;
+      ctx.strokeRect(-w/2, -h/2, w, h);
+
+      ctx.beginPath();
+      ctx.moveTo(0, -h/2);
+      ctx.lineTo(0, -h/2 - 45);
+      ctx.strokeStyle = '#722ed1';
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.arc(0, -h/2 - 45, 12, 0, Math.PI * 2);
+      ctx.fillStyle = '#722ed1';
+      ctx.fill();
+
+      const handles = [{ x: -w/2, y: -h/2 }, { x: w/2, y: -h/2 }, { x: -w/2, y: h/2 }, { x: w/2, y: h/2 }];
+      handles.forEach(hCoord => {
+        ctx.fillStyle = '#ffffff';
+        ctx.strokeStyle = '#722ed1';
+        ctx.lineWidth = 2.7;
+        ctx.fillRect(hCoord.x - 9, hCoord.y - 9, 18, 18);
+        ctx.strokeRect(hCoord.x - 9, hCoord.y - 9, 18, 18);
+      });
+      ctx.restore();
+    }
+
     function getTransformedHandleCoords(z) {
       let targetImg = z.img;
       let targetData = z.imgData;
@@ -891,7 +1036,24 @@
       return { globalHandles, rotHandle };
     }
 
-    let activeMode = null;
+    function getStickerHandleCoords(s) {
+      const w = s.width * s.scale;
+      const h = s.height * s.scale;
+      const rad = s.angle * Math.PI / 180;
+
+      const localHandles = [{ x: -w/2, y: -h/2 }, { x: w/2, y: -h/2 }, { x: -w/2, y: h/2 }, { x: w/2, y: h/2 }];
+      const globalHandles = localHandles.map(lh => ({
+        x: s.x + lh.x * Math.cos(rad) - lh.y * Math.sin(rad),
+        y: s.y + lh.x * Math.sin(rad) + lh.y * Math.cos(rad)
+      }));
+      const rotHandle = {
+        x: s.x - (-h/2 - 45) * Math.sin(rad),
+        y: s.y + (-h/2 - 45) * Math.cos(rad)
+      };
+      return { globalHandles, rotHandle };
+    }
+
+    let activeMode = null; 
     let startX = 0, startY = 0;
     let initialDist = 0, initialScale = 1;
 
@@ -962,9 +1124,48 @@
         }
       }
 
+      if (selectedStickerIndex !== -1 && stickers[selectedStickerIndex]) {
+        const s = stickers[selectedStickerIndex];
+        const { globalHandles, rotHandle } = getStickerHandleCoords(s);
+
+        if (Math.hypot(x - rotHandle.x, y - rotHandle.y) <= hitThreshold) {
+          saveState();
+          activeMode = 'sticker_rotate'; startX = x; startY = y; return;
+        }
+
+        for (let handle of globalHandles) {
+          if (Math.hypot(x - handle.x, y - handle.y) <= hitThreshold) {
+            saveState();
+            activeMode = 'sticker_scale'; startX = x; startY = y;
+            initialScale = s.scale;
+            initialDist = Math.hypot(x - s.x, y - s.y);
+            return;
+          }
+        }
+      }
+
+      let hitStickerIdx = -1;
+      for (let i = stickers.length - 1; i >= 0; i--) {
+        const s = stickers[i];
+        if (isPointInsideSticker(x, y, s)) {
+          hitStickerIdx = i;
+          break;
+        }
+      }
+
+      if (hitStickerIdx !== -1) {
+        selectedStickerIndex = hitStickerIdx;
+        selectedZoneIndex = -1; 
+        saveState();
+        activeMode = 'sticker_move'; startX = x; startY = y;
+        render();
+        return;
+      }
+
       const hitIndex = getHitZone(x, y);
       if (hitIndex !== -1) {
         selectedZoneIndex = hitIndex;
+        selectedStickerIndex = -1; 
         const clickedZone = baseZones[hitIndex];
         let checkHasImg = clickedZone.img;
         if (!checkHasImg && clickedZone.groupId) {
@@ -981,12 +1182,26 @@
         }
       } else {
         selectedZoneIndex = -1;
+        selectedStickerIndex = -1;
         activeMode = null;
       }
       render();
     }
 
-    // 完美無失真高畫質讀取 (使用 URL.createObjectURL 直接載入原始檔案 Blob)
+    function isPointInsideSticker(px, py, s) {
+      const rad = -s.angle * Math.PI / 180;
+      const cos = Math.cos(rad);
+      const sin = Math.sin(rad);
+      const dx = px - s.x;
+      const dy = py - s.y;
+      const localX = dx * cos - dy * sin;
+      const localY = dx * sin + dy * cos;
+
+      const w = s.width * s.scale;
+      const h = s.height * s.scale;
+      return localX >= -w/2 && localX <= w/2 && localY >= -h/2 && localY <= h/2;
+    }
+
     globalFileInput.addEventListener('change', function(e) {
       const file = e.target.files[0];
       if (!file || selectedZoneIndex === -1) return;
@@ -1030,43 +1245,65 @@
       img.src = blobUrl;
     });
 
+    function triggerAddSticker() {
+      stickerFileInput.value = '';
+      stickerFileInput.click();
+    }
+
+    stickerFileInput.addEventListener('change', function(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const blobUrl = URL.createObjectURL(file);
+      const img = new Image();
+      img.onload = function() {
+        saveState();
+        // 🛠️ 調整：預設貼紙初始大小設為寬高約 80px 左右，並將最小比例極限放寬，讓貼紙能縮到極小放入書背
+        const targetSize = 80;
+        const defaultScale = Math.min(targetSize / img.width, targetSize / img.height);
+
+        const newSticker = {
+          id: Date.now(),
+          img: img,
+          imgSrcBlob: blobUrl,
+          x: DESIGN_WIDTH / 2 + (Math.random() * 60 - 30),
+          y: DESIGN_HEIGHT / 2 + (Math.random() * 60 - 30),
+          scale: defaultScale,
+          angle: 0,
+          width: img.width,
+          height: img.height
+        };
+
+        stickers.push(newSticker);
+        selectedStickerIndex = stickers.length - 1;
+        selectedZoneIndex = -1;
+        render();
+      };
+      img.src = blobUrl;
+    });
+
     function handleMove(e) {
       if (e.touches && e.touches.length > 1) return; 
       if (!activeMode) return;
       if (e.cancelable) e.preventDefault();
 
-      if (selectedZoneIndex === -1) return;
-      const z = baseZones[selectedZoneIndex];
-      let targetData = z.imgData;
-      let targetZoneForCenter = z;
-      let sharedGroupId = z.groupId;
-
-      if (!targetData && z.groupId) {
-        const partner = baseZones.find(item => item.groupId === z.groupId && item.img);
-        if (partner) {
-          targetData = partner.imgData;
-          targetZoneForCenter = partner;
-        }
-      }
-      if (!targetData) return;
-
-      let centerX, centerY;
-      if (sharedGroupId) {
-        const groupMembers = baseZones.filter(item => item.groupId === sharedGroupId);
-        const minX = Math.min(...groupMembers.map(m => m.x));
-        const maxX = Math.max(...groupMembers.map(m => m.x + m.w));
-        const minY = Math.min(...groupMembers.map(m => m.top));
-        const maxY = Math.max(...groupMembers.map(m => m.top + m.h));
-        centerX = (minX + maxX) / 2 + targetData.offsetX;
-        centerY = (minY + maxY) / 2 + targetData.offsetY;
-      } else {
-        centerX = targetZoneForCenter.x + targetZoneForCenter.w/2 + targetData.offsetX;
-        centerY = targetZoneForCenter.top + targetZoneForCenter.h/2 + targetData.offsetY;
-      }
-
       const { x, y } = getCanvasPos(e);
 
-      if (activeMode === 'move') {
+      if (activeMode === 'move' && selectedZoneIndex !== -1) {
+        const z = baseZones[selectedZoneIndex];
+        let targetData = z.imgData;
+        let targetZoneForCenter = z;
+        let sharedGroupId = z.groupId;
+
+        if (!targetData && z.groupId) {
+          const partner = baseZones.find(item => item.groupId === z.groupId && item.img);
+          if (partner) {
+            targetData = partner.imgData;
+            targetZoneForCenter = partner;
+          }
+        }
+        if (!targetData) return;
+
         const dx = x - startX;
         const dy = y - startY;
         
@@ -1077,27 +1314,95 @@
           }
         });
         startX = x; startY = y;
-      } else if (activeMode === 'scale') {
+      } else if (activeMode === 'scale' && selectedZoneIndex !== -1) {
+        const z = baseZones[selectedZoneIndex];
+        let targetData = z.imgData;
+        let targetZoneForCenter = z;
+        if (!targetData && z.groupId) {
+          const partner = baseZones.find(item => item.groupId === z.groupId && item.img);
+          if (partner) {
+            targetData = partner.imgData;
+            targetZoneForCenter = partner;
+          }
+        }
+        let centerX, centerY;
+        if (z.groupId) {
+          const groupMembers = baseZones.filter(item => item.groupId === z.groupId);
+          const minX = Math.min(...groupMembers.map(m => m.x));
+          const maxX = Math.max(...groupMembers.map(m => m.x + m.w));
+          const minY = Math.min(...groupMembers.map(m => m.top));
+          const maxY = Math.max(...groupMembers.map(m => m.top + m.h));
+          centerX = (minX + maxX) / 2 + targetData.offsetX;
+          centerY = (minY + maxY) / 2 + targetData.offsetY;
+        } else {
+          centerX = targetZoneForCenter.x + targetZoneForCenter.w/2 + targetData.offsetX;
+          centerY = targetZoneForCenter.top + targetZoneForCenter.h/2 + targetData.offsetY;
+        }
+
         const currentDist = Math.hypot(x - centerX, y - centerY);
         if (initialDist > 0) {
-          const newScale = Math.min(Math.max(0.05, initialScale * (currentDist / initialDist)), 5);
+          const newScale = Math.min(Math.max(0.005, initialScale * (currentDist / initialDist)), 5);
           baseZones.forEach(item => {
-            if (item.imgData && (item === z || (sharedGroupId && item.groupId === sharedGroupId))) {
+            if (item.imgData && (item === z || (z.groupId && item.groupId === z.groupId))) {
               item.imgData.scale = newScale;
             }
           });
         }
-      } else if (activeMode === 'rotate') {
+      } else if (activeMode === 'rotate' && selectedZoneIndex !== -1) {
+        const z = baseZones[selectedZoneIndex];
+        let targetData = z.imgData;
+        let targetZoneForCenter = z;
+        if (!targetData && z.groupId) {
+          const partner = baseZones.find(item => item.groupId === z.groupId && item.img);
+          if (partner) {
+            targetData = partner.imgData;
+            targetZoneForCenter = partner;
+          }
+        }
+        let centerX, centerY;
+        if (z.groupId) {
+          const groupMembers = baseZones.filter(item => item.groupId === z.groupId);
+          const minX = Math.min(...groupMembers.map(m => m.x));
+          const maxX = Math.max(...groupMembers.map(m => m.x + m.w));
+          const minY = Math.min(...groupMembers.map(m => m.top));
+          const maxY = Math.max(...groupMembers.map(m => m.top + m.h));
+          centerX = (minX + maxX) / 2 + targetData.offsetX;
+          centerY = (minY + maxY) / 2 + targetData.offsetY;
+        } else {
+          centerX = targetZoneForCenter.x + targetZoneForCenter.w/2 + targetData.offsetX;
+          centerY = targetZoneForCenter.top + targetZoneForCenter.h/2 + targetData.offsetY;
+        }
+
         let angle = Math.atan2(y - centerY, x - centerX) * (180 / Math.PI) + 90;
         angle = (angle % 360 + 360) % 360;
         [0, 90, 180, 270, 360].forEach(target => {
           if (Math.abs(angle - target) < 6) angle = target % 360;
         });
         baseZones.forEach(item => {
-          if (item.imgData && (item === z || (sharedGroupId && item.groupId === sharedGroupId))) {
+          if (item.imgData && (item === z || (z.groupId && item.groupId === z.groupId))) {
             item.imgData.angle = angle;
           }
         });
+      } else if (activeMode === 'sticker_move' && selectedStickerIndex !== -1) {
+        const s = stickers[selectedStickerIndex];
+        s.x += (x - startX);
+        s.y += (y - startY);
+        startX = x; startY = y;
+      } else if (activeMode === 'sticker_scale' && selectedStickerIndex !== -1) {
+        const s = stickers[selectedStickerIndex];
+        const currentDist = Math.hypot(x - s.x, y - s.y);
+        if (initialDist > 0) {
+          // 🛠️ 調整：將貼紙的最小縮放極限從 0.05 降到 0.005，讓貼紙可以縮得非常小塞進書背
+          s.scale = Math.min(Math.max(0.005, initialScale * (currentDist / initialDist)), 5);
+        }
+      } else if (activeMode === 'sticker_rotate' && selectedStickerIndex !== -1) {
+        const s = stickers[selectedStickerIndex];
+        let angle = Math.atan2(y - s.y, x - s.x) * (180 / Math.PI) + 90;
+        angle = (angle % 360 + 360) % 360;
+        [0, 90, 180, 270, 360].forEach(target => {
+          if (Math.abs(angle - target) < 6) angle = target % 360;
+        });
+        s.angle = angle;
       }
       render();
     }
@@ -1143,7 +1448,7 @@
 
         if (targetData) {
           saveState();
-          const newScale = Math.min(Math.max(0.05, targetData.scale * (e.deltaY < 0 ? 1.05 : 0.95)), 5);
+          const newScale = Math.min(Math.max(0.005, targetData.scale * (e.deltaY < 0 ? 1.05 : 0.95)), 5);
           baseZones.forEach(item => {
             if (item.imgData && (item === z || (sharedGroupId && item.groupId === sharedGroupId))) {
               item.imgData.scale = newScale;
@@ -1151,6 +1456,11 @@
           });
           render();
         }
+      } else if (selectedStickerIndex !== -1 && stickers[selectedStickerIndex]) {
+        saveState();
+        const s = stickers[selectedStickerIndex];
+        s.scale = Math.min(Math.max(0.005, s.scale * (e.deltaY < 0 ? 1.05 : 0.95)), 5);
+        render();
       }
     }, { passive: false });
 
@@ -1183,11 +1493,43 @@
           });
           render(); 
         }
-      } 
+      } else if (selectedStickerIndex !== -1) {
+        saveState();
+        stickers.splice(selectedStickerIndex, 1);
+        selectedStickerIndex = -1;
+        render();
+      }
     }
 
     function openPreviewModal() {
+      for (let i = 0; i < baseZones.length; i++) {
+        const z = baseZones[i];
+        let hasImg = z.img;
+        if (!hasImg && z.groupId) {
+          const partner = baseZones.find(item => item.groupId === z.groupId && item.img);
+          if (partner) hasImg = partner.img;
+        }
+
+        if (!hasImg) {
+          let zoneName = '';
+          if (z.isSpine && z.labelSpine) {
+            zoneName = z.labelSpine;
+          } else if (z.id.includes('書背')) {
+            zoneName = '書背';
+          } else {
+            zoneName = z.id.replace(/^\d+\./, '');
+          }
+
+          alert(`⚠️ 您還有「${zoneName}」尚未上傳圖片！\n請先上傳圖片後再送出設計。`);
+          selectedZoneIndex = i;
+          selectedStickerIndex = -1;
+          render();
+          return;
+        }
+      }
+
       selectedZoneIndex = -1;
+      selectedStickerIndex = -1;
       render(true);
 
       canvas.toBlob(function(blob) {
@@ -1245,6 +1587,7 @@
       statusModal.style.display = 'flex';
 
       selectedZoneIndex = -1;
+      selectedStickerIndex = -1;
       render(true); 
 
       canvas.toBlob(function(blob) {
