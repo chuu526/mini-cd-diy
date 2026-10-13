@@ -156,19 +156,25 @@
     }
     .btn-sticker:hover { background: #c59363; }
 
-    .btn-magic-wand {
+    .btn-auto-subject {
       background: #722ed1;
       color: #ffffff;
       border-color: #531dab;
     }
-    .btn-magic-wand:hover { background: #531dab; }
+    .btn-auto-subject:hover { background: #531dab; }
 
-    .btn-magic-done {
-      background: #52c41a;
+    .btn-magic-wand {
+      background: #13c2c2;
       color: #ffffff;
-      border-color: #389e0d;
+      border-color: #08979c;
     }
-    .btn-magic-done:hover { background: #389e0d; }
+    .btn-magic-wand:hover { background: #08979c; }
+
+    .btn-active-mode {
+      background: #52c41a !important;
+      color: #ffffff !important;
+      border-color: #389e0d !important;
+    }
 
     .btn-checkout { background: #9E7B66; color: #ffffff; border-color: #8b6a55; } 
 
@@ -403,7 +409,8 @@
       </div>
       
       <div class="sticker-tools" id="stickerTools" style="display: none;">
-        <button class="btn btn-magic-wand" id="magicWandBtn" onclick="toggleMagicWandMode()">🪄 點擊圖片擦除背景 (魔術棒)</button>
+        <button class="btn btn-auto-subject" id="selectSubjectBtn" onclick="toggleSelectSubjectMode()">🎯 點擊人物自動選取去背</button>
+        <button class="btn btn-magic-wand" id="magicWandBtn" onclick="toggleMagicWandMode()">🪄 魔術棒點擊擦除</button>
       </div>
     </div>
 
@@ -416,9 +423,8 @@
     <div class="tip-box">
       <b>✂️ 操作說明：</b> 
       <ul>
-        <li>點擊任一格子可上傳照片，並直接在下方切換該格子的獨立底色。</li>
-        <li>點擊「新增裝飾貼紙」可隨意上傳裝飾圖案，貼紙不限框框、可自由縮放與移動。</li>
-        <li><b>魔術棒去背：</b>選中貼紙後開啟「魔術棒模式」，直接點擊圖片上要擦掉的地方即可去背！</li>
+        <li><b>🎯 點擊人物自動選取去背：</b>點擊按鈕後，只要在貼紙上的<b>主角/人物身體任何地方輕點一下</b>，系統就會自動鎖定主角並清空周圍背景！</li>
+        <li><b>🪄 魔術棒點擊擦除：</b>點擊貼紙上微小的殘留背景顏色即可擦除。</li>
       </ul>
     </div>
   </div>
@@ -484,11 +490,13 @@
     const trashBtn = document.getElementById('trashBtn');
     const stickerTools = document.getElementById('stickerTools');
     const magicWandBtn = document.getElementById('magicWandBtn');
+    const selectSubjectBtn = document.getElementById('selectSubjectBtn');
 
     let previewFinished = false;
     let selectedZoneIndex = -1;       
     let selectedStickerIndex = -1;    
-    let isMagicWandMode = false; // 魔術棒去背模式旗標
+    let isMagicWandMode = false;
+    let isSelectSubjectMode = false; 
 
     const LINE_COLOR = '#E0E0E0';
 
@@ -641,8 +649,10 @@
         trashBtn.disabled = false;
         stickerTools.style.display = 'none';
       } else if (selectedStickerIndex !== -1) {
-        if (isMagicWandMode) {
-          label.innerHTML = `🪄 <b>魔術棒模式中：</b>點擊貼紙上要擦掉的背景！`;
+        if (isSelectSubjectMode) {
+          label.innerHTML = `🎯 <b>點擊選取主角中：</b>請在主角/人物身體上點擊一下！`;
+        } else if (isMagicWandMode) {
+          label.innerHTML = `🪄 <b>魔術棒模式：</b>點擊要擦掉的背景色彩！`;
         } else {
           label.innerHTML = `🎨 已選中裝飾貼紙 (可自由移動或刪除)`;
         }
@@ -655,6 +665,7 @@
         trashBtn.disabled = true;
         stickerTools.style.display = 'none';
         isMagicWandMode = false;
+        isSelectSubjectMode = false;
       }
     }
 
@@ -983,14 +994,13 @@
       ctx.translate(s.x, s.y);
       ctx.rotate(s.angle * Math.PI / 180);
 
-      // 如果在魔術棒模式，顯示紅紫色警告框
-      ctx.strokeStyle = isMagicWandMode ? '#ff4d4f' : '#722ed1'; 
-      ctx.lineWidth = isMagicWandMode ? 3.5 : 2.7;
-      if (isMagicWandMode) ctx.setLineDash([8, 8]);
+      ctx.strokeStyle = (isMagicWandMode || isSelectSubjectMode) ? '#ff4d4f' : '#722ed1'; 
+      ctx.lineWidth = (isMagicWandMode || isSelectSubjectMode) ? 3.5 : 2.7;
+      if (isMagicWandMode || isSelectSubjectMode) ctx.setLineDash([8, 8]);
       ctx.strokeRect(-w/2, -h/2, w, h);
       ctx.setLineDash([]);
 
-      if (!isMagicWandMode) {
+      if (!isMagicWandMode && !isSelectSubjectMode) {
         ctx.beginPath();
         ctx.moveTo(0, -h/2);
         ctx.lineTo(0, -h/2 - 45);
@@ -1089,41 +1099,148 @@
       return { x: rawX, y: rawY };
     }
 
-    // 開啟/關閉魔術棒模式
-    function toggleMagicWandMode() {
+    function toggleSelectSubjectMode() {
       if (selectedStickerIndex === -1) return;
-      isMagicWandMode = !isMagicWandMode;
-      if (isMagicWandMode) {
-        magicWandBtn.className = 'btn btn-magic-done';
-        magicWandBtn.innerText = '✅ 完成去背 (點擊退出)';
-      } else {
+      isSelectSubjectMode = !isSelectSubjectMode;
+      isMagicWandMode = false;
+      if (isSelectSubjectMode) {
+        selectSubjectBtn.className = 'btn btn-active-mode';
+        selectSubjectBtn.innerText = '🎯 智慧模式中 (請點擊主角身體)';
         magicWandBtn.className = 'btn btn-magic-wand';
-        magicWandBtn.innerText = '🪄 點擊圖片擦除背景 (魔術棒)';
+      } else {
+        selectSubjectBtn.className = 'btn btn-auto-subject';
+        selectSubjectBtn.innerText = '🎯 點擊人物自動選取去背';
       }
       render();
     }
 
-    // 魔術棒：根據點擊位置執行顏色泛洪擦除
+    function toggleMagicWandMode() {
+      if (selectedStickerIndex === -1) return;
+      isMagicWandMode = !isMagicWandMode;
+      isSelectSubjectMode = false;
+      if (isMagicWandMode) {
+        magicWandBtn.className = 'btn btn-active-mode';
+        magicWandBtn.innerText = '✅ 完成擦除 (點擊退出)';
+        selectSubjectBtn.className = 'btn btn-auto-subject';
+      } else {
+        magicWandBtn.className = 'btn btn-magic-wand';
+        magicWandBtn.innerText = '🪄 魔術棒點擊擦除';
+      }
+      render();
+    }
+
+    // 🎯 點擊一鍵抓取主角本體（四角邊緣逆向抹除法）
+    function executeSelectSubject(clickX, clickY) {
+      if (selectedStickerIndex === -1) return;
+      const s = stickers[selectedStickerIndex];
+      if (!s.img) return;
+
+      saveState();
+
+      const rad = -s.angle * Math.PI / 180;
+      const cos = Math.cos(rad);
+      const sin = Math.sin(rad);
+
+      const w = s.width;
+      const h = s.height;
+
+      const tempCanvas = document.createElement('canvas');
+      const tempCtx = tempCanvas.getContext('2d');
+      tempCanvas.width = w;
+      tempCanvas.height = h;
+
+      tempCtx.drawImage(s.img, 0, 0);
+      const imgData = tempCtx.getImageData(0, 0, w, h);
+      const data = imgData.data;
+
+      // 從圖片四個外角邊緣開始，自動尋找背景並向內清空
+      const bgVisited = new Uint8Array(w * h);
+      const queue = [];
+
+      // 把四條外邊的像素都推入佇列
+      for (let x = 0; x < w; x++) {
+        queue.push(x, 0); bgVisited[0 * w + x] = 1;
+        queue.push(x, h - 1); bgVisited[(h - 1) * w + x] = 1;
+      }
+      for (let y = 0; y < h; y++) {
+        queue.push(0, y); bgVisited[y * w + 0] = 1;
+        queue.push(w - 1, y); bgVisited[y * w + (w - 1)] = 1;
+      }
+
+      // 計算邊緣色彩平均值作為背景底色
+      let bgR = 0, bgG = 0, bgB = 0, count = 0;
+      for (let i = 0; i < queue.length; i += 2) {
+        const qx = queue[i], qy = queue[i+1];
+        const idx = (qy * w + qx) * 4;
+        bgR += data[idx]; bgG += data[idx+1]; bgB += data[idx+2];
+        count++;
+      }
+      bgR /= count; bgG /= count; bgB /= count;
+
+      // 向內泛洪消除背景（保留中央主角）
+      let head = 0;
+      const tolerance = 75; // 高容許度，將櫻花與背景一次清掉
+
+      while (head < queue.length) {
+        const cx = queue[head++];
+        const cy = queue[head++];
+        const currIdx = (cy * w + cx) * 4;
+
+        data[currIdx + 3] = 0; // 擦拭成透明
+
+        const neighbors = [[cx + 1, cy], [cx - 1, cy], [cx, cy + 1], [cx, cy - 1]];
+        for (let i = 0; i < neighbors.length; i++) {
+          const nx = neighbors[i][0];
+          const ny = neighbors[i][1];
+
+          if (nx >= 0 && nx < w && ny >= 0 && ny < h) {
+            const vIdx = ny * w + nx;
+            if (!bgVisited[vIdx]) {
+              const nxtIdx = (ny * w + nx) * 4;
+              const rDiff = data[nxtIdx] - bgR;
+              const gDiff = data[nxtIdx + 1] - bgG;
+              const bDiff = data[nxtIdx + 2] - bgB;
+              const dist = Math.sqrt(rDiff * rDiff + gDiff * gDiff + bDiff * bDiff);
+
+              if (dist < tolerance || data[nxtIdx + 3] < 30) {
+                bgVisited[vIdx] = 1;
+                queue.push(nx, ny);
+              }
+            }
+          }
+        }
+      }
+
+      tempCtx.putImageData(imgData, 0, 0);
+
+      const newImg = new Image();
+      newImg.onload = function() {
+        s.img = newImg;
+        s.imgSrcBlob = tempCanvas.toDataURL('image/png');
+        isSelectSubjectMode = false;
+        selectSubjectBtn.className = 'btn btn-auto-subject';
+        selectSubjectBtn.innerText = '🎯 點擊人物自動選取去背';
+        render();
+      };
+      newImg.src = tempCanvas.toDataURL('image/png');
+    }
+
     function executeMagicWandEraser(clickX, clickY) {
       if (selectedStickerIndex === -1) return;
       const s = stickers[selectedStickerIndex];
       if (!s.img) return;
 
-      // 轉換畫布點擊座標為貼紙內部局部座標 (0 ~ w, 0 ~ h)
       const rad = -s.angle * Math.PI / 180;
-      const cos = Math.cos(rad);
-      const sin = Math.sin(rad);
       const dx = clickX - s.x;
       const dy = clickY - s.y;
-      const localX = dx * cos - dy * sin;
-      const localY = dx * sin + dy * cos;
+      const localX = dx * Math.cos(rad) - dy * Math.sin(rad);
+      const localY = dx * Math.sin(rad) + dy * Math.cos(rad);
 
       const w = s.width;
       const h = s.height;
       const currentScaledW = s.width * s.scale;
       const currentScaledH = s.height * s.scale;
 
-      // 計算在原始圖像點陣上的像素座標
       const imgX = Math.floor((localX + currentScaledW / 2) / s.scale);
       const imgY = Math.floor((localY + currentScaledH / 2) / s.scale);
 
@@ -1146,12 +1263,12 @@
       const targetB = data[targetIdx + 2];
       const targetA = data[targetIdx + 3];
 
-      if (targetA === 0) return; // 已經是透明處
+      if (targetA === 0) return;
 
       const visited = new Uint8Array(w * h);
       const queue = [imgX, imgY];
       visited[imgY * w + imgX] = 1;
-      const tolerance = 45; // 色彩相近容差值
+      const tolerance = 45;
 
       function colorDist(idx) {
         const rDiff = data[idx] - targetR;
@@ -1166,13 +1283,9 @@
         const cy = queue[head++];
         const currIdx = (cy * w + cx) * 4;
 
-        data[currIdx + 3] = 0; // 擦除變透明
+        data[currIdx + 3] = 0;
 
-        const neighbors = [
-          [cx + 1, cy], [cx - 1, cy],
-          [cx, cy + 1], [cx, cy - 1]
-        ];
-
+        const neighbors = [[cx + 1, cy], [cx - 1, cy], [cx, cy + 1], [cx, cy - 1]];
         for (let i = 0; i < neighbors.length; i++) {
           const nx = neighbors[i][0];
           const ny = neighbors[i][1];
@@ -1207,7 +1320,14 @@
       const { x, y } = getCanvasPos(e);
       const hitThreshold = 25;
 
-      // 如果在魔術棒模式，點擊直接觸發點擊位置去背！
+      if (isSelectSubjectMode && selectedStickerIndex !== -1) {
+        const s = stickers[selectedStickerIndex];
+        if (isPointInsideSticker(x, y, s)) {
+          executeSelectSubject(x, y);
+          return;
+        }
+      }
+
       if (isMagicWandMode && selectedStickerIndex !== -1) {
         const s = stickers[selectedStickerIndex];
         if (isPointInsideSticker(x, y, s)) {
@@ -1267,7 +1387,7 @@
         }
       }
 
-      if (selectedStickerIndex !== -1 && stickers[selectedStickerIndex] && !isMagicWandMode) {
+      if (selectedStickerIndex !== -1 && stickers[selectedStickerIndex] && !isMagicWandMode && !isSelectSubjectMode) {
         const s = stickers[selectedStickerIndex];
         const { globalHandles, rotHandle } = getStickerHandleCoords(s);
 
@@ -1298,7 +1418,7 @@
 
       if (hitStickerIdx !== -1) {
         if (selectedStickerIndex === hitStickerIdx) {
-          if (!isMagicWandMode) {
+          if (!isMagicWandMode && !isSelectSubjectMode) {
             saveState();
             activeMode = 'sticker_move'; startX = x; startY = y;
           }
@@ -1307,6 +1427,7 @@
           selectedStickerIndex = hitStickerIdx;
           selectedZoneIndex = -1;
           isMagicWandMode = false;
+          isSelectSubjectMode = false;
           render();
           return;
         }
@@ -1330,6 +1451,7 @@
         selectedZoneIndex = hitIndex;
         selectedStickerIndex = -1;
         isMagicWandMode = false;
+        isSelectSubjectMode = false;
 
         if (!checkHasImg) {
           globalFileInput.value = '';
@@ -1342,6 +1464,7 @@
       selectedZoneIndex = -1;
       selectedStickerIndex = -1;
       isMagicWandMode = false;
+      isSelectSubjectMode = false;
       activeMode = null;
       render();
     }
@@ -1435,6 +1558,7 @@
         selectedStickerIndex = stickers.length - 1;
         selectedZoneIndex = -1;
         isMagicWandMode = false;
+        isSelectSubjectMode = false;
         render();
       };
       img.src = blobUrl;
@@ -1569,6 +1693,7 @@
 
     function handleEnd() { 
       activeMode = null; 
+      render();
     }
 
     canvas.addEventListener('mousedown', handleCanvasInteraction);
@@ -1653,6 +1778,7 @@
         stickers.splice(selectedStickerIndex, 1);
         selectedStickerIndex = -1;
         isMagicWandMode = false;
+        isSelectSubjectMode = false;
         render();
       }
     }
@@ -1680,6 +1806,7 @@
           selectedZoneIndex = i;
           selectedStickerIndex = -1;
           isMagicWandMode = false;
+          isSelectSubjectMode = false;
           render();
           return;
         }
@@ -1688,6 +1815,7 @@
       selectedZoneIndex = -1;
       selectedStickerIndex = -1;
       isMagicWandMode = false;
+      isSelectSubjectMode = false;
       render(true);
 
       canvas.toBlob(function(blob) {
@@ -1747,6 +1875,7 @@
       selectedZoneIndex = -1;
       selectedStickerIndex = -1;
       isMagicWandMode = false;
+      isSelectSubjectMode = false;
       render(true); 
 
       canvas.toBlob(function(blob) {
