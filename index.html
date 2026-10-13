@@ -131,13 +131,13 @@
     }
 
     .btn { 
-      padding: 12px 18px; 
+      padding: 10px 14px; 
       border-radius: 6px; 
       cursor: pointer; 
-      font-size: 14px; 
+      font-size: 13px; 
       font-weight: bold; 
       flex: 1; 
-      min-width: 130px; 
+      min-width: 110px; 
       text-align: center; 
       border: 1px solid #D4C3B3;
     }
@@ -156,19 +156,26 @@
     }
     .btn-sticker:hover { background: #c59363; }
 
-    .btn-auto-subject {
-      background: #722ed1;
-      color: #ffffff;
-      border-color: #531dab;
-    }
-    .btn-auto-subject:hover { background: #531dab; }
-
     .btn-magic-wand {
       background: #13c2c2;
       color: #ffffff;
       border-color: #08979c;
     }
     .btn-magic-wand:hover { background: #08979c; }
+
+    .btn-eraser {
+      background: #fa8c16;
+      color: #ffffff;
+      border-color: #d46b08;
+    }
+    .btn-eraser:hover { background: #d46b08; }
+
+    .btn-restore {
+      background: #2f54eb;
+      color: #ffffff;
+      border-color: #1d39c4;
+    }
+    .btn-restore:hover { background: #1d39c4; }
 
     .btn-active-mode {
       background: #52c41a !important;
@@ -233,10 +240,35 @@
 
     .sticker-tools {
       display: flex;
+      flex-direction: column;
       gap: 10px;
       width: 100%;
       border-top: 1px solid #ffe58f;
       padding-top: 10px;
+    }
+
+    .sticker-tools-buttons {
+      display: flex;
+      gap: 8px;
+      width: 100%;
+      flex-wrap: wrap;
+    }
+
+    .brush-size-control {
+      display: none;
+      align-items: center;
+      gap: 10px;
+      background: #ffffff;
+      padding: 6px 12px;
+      border-radius: 6px;
+      border: 1px solid #ffe58f;
+      font-size: 13px;
+      color: #5c4033;
+    }
+
+    .brush-size-control input[type="range"] {
+      flex: 1;
+      cursor: pointer;
     }
 
     .tip-box { 
@@ -409,8 +441,17 @@
       </div>
       
       <div class="sticker-tools" id="stickerTools" style="display: none;">
-        <button class="btn btn-auto-subject" id="selectSubjectBtn" onclick="toggleSelectSubjectMode()">🎯 點擊人物自動選取去背</button>
-        <button class="btn btn-magic-wand" id="magicWandBtn" onclick="toggleMagicWandMode()">🪄 魔術棒點擊擦除</button>
+        <div class="sticker-tools-buttons">
+          <button class="btn btn-magic-wand" id="magicWandBtn" onclick="toggleMagicWandMode()">🪄 智慧魔術棒去背</button>
+          <button class="btn btn-eraser" id="eraserModeBtn" onclick="toggleEraserMode()">🧹 手動橡皮擦</button>
+          <button class="btn btn-restore" id="restoreModeBtn" onclick="toggleRestoreMode()">🖌️ 還原筆刷</button>
+        </div>
+
+        <div class="brush-size-control" id="brushSizeBox">
+          <span>🖌️ 筆刷大小：</span>
+          <input type="range" id="brushSizeSlider" min="10" max="100" value="30" oninput="updateBrushSizeLabel(this.value)">
+          <span id="brushSizeValue">30px</span>
+        </div>
       </div>
     </div>
 
@@ -421,10 +462,10 @@
     </div>
 
     <div class="tip-box">
-      <b>✂️ 操作說明：</b> 
+      <b>✂️ 貼紙精修說明：</b> 
       <ul>
-        <li><b>🎯 點擊人物自動選取去背：</b>點擊按鈕後，只要在貼紙上的<b>主角/人物身體任何地方輕點一下</b>，系統就會自動鎖定主角並清空周圍背景！</li>
-        <li><b>🪄 魔術棒點擊擦除：</b>點擊貼紙上微小的殘留背景顏色即可擦除。</li>
+        <li><b>🪄 智慧魔術棒去背：</b>點擊貼紙背景，秒速自動清除相同顏色的周圍背景！</li>
+        <li><b>🧹 橡皮擦 / 🖌️ 還原筆刷：</b>可透過下方滑桿自由調整筆刷粗細，局部塗抹微調。</li>
       </ul>
     </div>
   </div>
@@ -462,7 +503,7 @@
     </div>
   </div>
 
-  <!-- 傳送中或完成/失敗提示視窗 -->
+  <!-- 傳送中提示視窗 -->
   <div class="modal-overlay" id="statusModal" onclick="checkOutsideClose(event, 'statusModal')">
     <div class="modal-content">
       <h3 id="statusTitle">📤 正在傳送至店家...</h3>
@@ -490,13 +531,17 @@
     const trashBtn = document.getElementById('trashBtn');
     const stickerTools = document.getElementById('stickerTools');
     const magicWandBtn = document.getElementById('magicWandBtn');
-    const selectSubjectBtn = document.getElementById('selectSubjectBtn');
+    const eraserModeBtn = document.getElementById('eraserModeBtn');
+    const restoreModeBtn = document.getElementById('restoreModeBtn');
+    const brushSizeBox = document.getElementById('brushSizeBox');
 
     let previewFinished = false;
     let selectedZoneIndex = -1;       
     let selectedStickerIndex = -1;    
     let isMagicWandMode = false;
-    let isSelectSubjectMode = false; 
+    let isEraserMode = false;
+    let isRestoreMode = false;
+    let currentBrushRadius = 30;
 
     const LINE_COLOR = '#E0E0E0';
 
@@ -531,7 +576,8 @@
           scale: s.scale,
           angle: s.angle,
           width: s.width,
-          height: s.height
+          height: s.height,
+          originalImgSrcBlob: s.originalImgSrcBlob
         }))
       };
     }
@@ -566,10 +612,16 @@
         const img = new Image();
         img.onload = () => { render(); };
         img.src = savedS.imgSrcBlob;
+        
+        const origImg = new Image();
+        origImg.src = savedS.originalImgSrcBlob;
+
         return {
           id: savedS.id,
           img: img,
           imgSrcBlob: savedS.imgSrcBlob,
+          originalImg: origImg,
+          originalImgSrcBlob: savedS.originalImgSrcBlob,
           x: savedS.x,
           y: savedS.y,
           scale: savedS.scale,
@@ -614,6 +666,11 @@
 
     window.addEventListener('resize', initCanvasSize);
 
+    function updateBrushSizeLabel(val) {
+      currentBrushRadius = parseInt(val, 10);
+      document.getElementById('brushSizeValue').innerText = val + 'px';
+    }
+
     function changeSelectedZoneBgColor(color) {
       if (selectedZoneIndex !== -1) {
         const targetZone = baseZones[selectedZoneIndex];
@@ -649,12 +706,18 @@
         trashBtn.disabled = false;
         stickerTools.style.display = 'none';
       } else if (selectedStickerIndex !== -1) {
-        if (isSelectSubjectMode) {
-          label.innerHTML = `🎯 <b>點擊選取主角中：</b>請在主角/人物身體上點擊一下！`;
-        } else if (isMagicWandMode) {
+        if (isMagicWandMode) {
           label.innerHTML = `🪄 <b>魔術棒模式：</b>點擊要擦掉的背景色彩！`;
+          brushSizeBox.style.display = 'none';
+        } else if (isEraserMode) {
+          label.innerHTML = `🧹 <b>手動橡皮擦模式：</b>按住並塗抹要擦掉的背景！`;
+          brushSizeBox.style.display = 'flex';
+        } else if (isRestoreMode) {
+          label.innerHTML = `🖌️ <b>還原筆刷模式：</b>按住並塗抹要長回來的區域！`;
+          brushSizeBox.style.display = 'flex';
         } else {
-          label.innerHTML = `🎨 已選中裝飾貼紙 (可自由移動或刪除)`;
+          label.innerHTML = `🎨 已選中貼紙 (可使用下方工具精修)`;
+          brushSizeBox.style.display = 'none';
         }
         picker.disabled = true;
         trashBtn.disabled = false;
@@ -664,8 +727,10 @@
         picker.disabled = true;
         trashBtn.disabled = true;
         stickerTools.style.display = 'none';
+        brushSizeBox.style.display = 'none';
         isMagicWandMode = false;
-        isSelectSubjectMode = false;
+        isEraserMode = false;
+        isRestoreMode = false;
       }
     }
 
@@ -994,13 +1059,14 @@
       ctx.translate(s.x, s.y);
       ctx.rotate(s.angle * Math.PI / 180);
 
-      ctx.strokeStyle = (isMagicWandMode || isSelectSubjectMode) ? '#ff4d4f' : '#722ed1'; 
-      ctx.lineWidth = (isMagicWandMode || isSelectSubjectMode) ? 3.5 : 2.7;
-      if (isMagicWandMode || isSelectSubjectMode) ctx.setLineDash([8, 8]);
+      const isPaintingMode = isMagicWandMode || isEraserMode || isRestoreMode;
+      ctx.strokeStyle = isPaintingMode ? '#ff4d4f' : '#722ed1'; 
+      ctx.lineWidth = isPaintingMode ? 3.5 : 2.7;
+      if (isPaintingMode) ctx.setLineDash([8, 8]);
       ctx.strokeRect(-w/2, -h/2, w, h);
       ctx.setLineDash([]);
 
-      if (!isMagicWandMode && !isSelectSubjectMode) {
+      if (!isPaintingMode) {
         ctx.beginPath();
         ctx.moveTo(0, -h/2);
         ctx.lineTo(0, -h/2 - 45);
@@ -1099,132 +1165,58 @@
       return { x: rawX, y: rawY };
     }
 
-    function toggleSelectSubjectMode() {
-      if (selectedStickerIndex === -1) return;
-      isSelectSubjectMode = !isSelectSubjectMode;
-      isMagicWandMode = false;
-      if (isSelectSubjectMode) {
-        selectSubjectBtn.className = 'btn btn-active-mode';
-        selectSubjectBtn.innerText = '🎯 智慧模式中 (請點擊主角身體)';
-        magicWandBtn.className = 'btn btn-magic-wand';
-      } else {
-        selectSubjectBtn.className = 'btn btn-auto-subject';
-        selectSubjectBtn.innerText = '🎯 點擊人物自動選取去背';
-      }
-      render();
-    }
-
     function toggleMagicWandMode() {
       if (selectedStickerIndex === -1) return;
       isMagicWandMode = !isMagicWandMode;
-      isSelectSubjectMode = false;
+      isEraserMode = false;
+      isRestoreMode = false;
       if (isMagicWandMode) {
         magicWandBtn.className = 'btn btn-active-mode';
-        magicWandBtn.innerText = '✅ 完成擦除 (點擊退出)';
-        selectSubjectBtn.className = 'btn btn-auto-subject';
+        magicWandBtn.innerText = '🪄 魔術棒進行中';
+        eraserModeBtn.className = 'btn btn-eraser';
+        restoreModeBtn.className = 'btn btn-restore';
       } else {
         magicWandBtn.className = 'btn btn-magic-wand';
-        magicWandBtn.innerText = '🪄 魔術棒點擊擦除';
+        magicWandBtn.innerText = '🪄 智慧魔術棒去背';
       }
       render();
     }
 
-    // 🎯 點擊一鍵抓取主角本體（四角邊緣逆向抹除法）
-    function executeSelectSubject(clickX, clickY) {
+    function toggleEraserMode() {
       if (selectedStickerIndex === -1) return;
-      const s = stickers[selectedStickerIndex];
-      if (!s.img) return;
-
-      saveState();
-
-      const rad = -s.angle * Math.PI / 180;
-      const cos = Math.cos(rad);
-      const sin = Math.sin(rad);
-
-      const w = s.width;
-      const h = s.height;
-
-      const tempCanvas = document.createElement('canvas');
-      const tempCtx = tempCanvas.getContext('2d');
-      tempCanvas.width = w;
-      tempCanvas.height = h;
-
-      tempCtx.drawImage(s.img, 0, 0);
-      const imgData = tempCtx.getImageData(0, 0, w, h);
-      const data = imgData.data;
-
-      // 從圖片四個外角邊緣開始，自動尋找背景並向內清空
-      const bgVisited = new Uint8Array(w * h);
-      const queue = [];
-
-      // 把四條外邊的像素都推入佇列
-      for (let x = 0; x < w; x++) {
-        queue.push(x, 0); bgVisited[0 * w + x] = 1;
-        queue.push(x, h - 1); bgVisited[(h - 1) * w + x] = 1;
+      isEraserMode = !isEraserMode;
+      isMagicWandMode = false;
+      isRestoreMode = false;
+      if (isEraserMode) {
+        eraserModeBtn.className = 'btn btn-active-mode';
+        eraserModeBtn.innerText = '🧹 橡皮擦進行中';
+        magicWandBtn.className = 'btn btn-magic-wand';
+        restoreModeBtn.className = 'btn btn-restore';
+      } else {
+        eraserModeBtn.className = 'btn btn-eraser';
+        eraserModeBtn.innerText = '🧹 手動橡皮擦';
       }
-      for (let y = 0; y < h; y++) {
-        queue.push(0, y); bgVisited[y * w + 0] = 1;
-        queue.push(w - 1, y); bgVisited[y * w + (w - 1)] = 1;
-      }
-
-      // 計算邊緣色彩平均值作為背景底色
-      let bgR = 0, bgG = 0, bgB = 0, count = 0;
-      for (let i = 0; i < queue.length; i += 2) {
-        const qx = queue[i], qy = queue[i+1];
-        const idx = (qy * w + qx) * 4;
-        bgR += data[idx]; bgG += data[idx+1]; bgB += data[idx+2];
-        count++;
-      }
-      bgR /= count; bgG /= count; bgB /= count;
-
-      // 向內泛洪消除背景（保留中央主角）
-      let head = 0;
-      const tolerance = 75; // 高容許度，將櫻花與背景一次清掉
-
-      while (head < queue.length) {
-        const cx = queue[head++];
-        const cy = queue[head++];
-        const currIdx = (cy * w + cx) * 4;
-
-        data[currIdx + 3] = 0; // 擦拭成透明
-
-        const neighbors = [[cx + 1, cy], [cx - 1, cy], [cx, cy + 1], [cx, cy - 1]];
-        for (let i = 0; i < neighbors.length; i++) {
-          const nx = neighbors[i][0];
-          const ny = neighbors[i][1];
-
-          if (nx >= 0 && nx < w && ny >= 0 && ny < h) {
-            const vIdx = ny * w + nx;
-            if (!bgVisited[vIdx]) {
-              const nxtIdx = (ny * w + nx) * 4;
-              const rDiff = data[nxtIdx] - bgR;
-              const gDiff = data[nxtIdx + 1] - bgG;
-              const bDiff = data[nxtIdx + 2] - bgB;
-              const dist = Math.sqrt(rDiff * rDiff + gDiff * gDiff + bDiff * bDiff);
-
-              if (dist < tolerance || data[nxtIdx + 3] < 30) {
-                bgVisited[vIdx] = 1;
-                queue.push(nx, ny);
-              }
-            }
-          }
-        }
-      }
-
-      tempCtx.putImageData(imgData, 0, 0);
-
-      const newImg = new Image();
-      newImg.onload = function() {
-        s.img = newImg;
-        s.imgSrcBlob = tempCanvas.toDataURL('image/png');
-        isSelectSubjectMode = false;
-        selectSubjectBtn.className = 'btn btn-auto-subject';
-        selectSubjectBtn.innerText = '🎯 點擊人物自動選取去背';
-        render();
-      };
-      newImg.src = tempCanvas.toDataURL('image/png');
+      render();
     }
 
+    function toggleRestoreMode() {
+      if (selectedStickerIndex === -1) return;
+      isRestoreMode = !isRestoreMode;
+      isMagicWandMode = false;
+      isEraserMode = false;
+      if (isRestoreMode) {
+        restoreModeBtn.className = 'btn btn-active-mode';
+        restoreModeBtn.innerText = '🖌️ 還原筆刷中';
+        magicWandBtn.className = 'btn btn-magic-wand';
+        eraserModeBtn.className = 'btn btn-eraser';
+      } else {
+        restoreModeBtn.className = 'btn btn-restore';
+        restoreModeBtn.innerText = '🖌️ 還原筆刷';
+      }
+      render();
+    }
+
+    // 🪄 智慧魔術棒點擊填滿擦除
     function executeMagicWandEraser(clickX, clickY) {
       if (selectedStickerIndex === -1) return;
       const s = stickers[selectedStickerIndex];
@@ -1314,24 +1306,107 @@
       newImg.src = tempCanvas.toDataURL('image/png');
     }
 
+    // 🖌️ 手動筆刷塗抹（動態大小）
+    function applyBrush(clickX, clickY, type) {
+      if (selectedStickerIndex === -1) return;
+      const s = stickers[selectedStickerIndex];
+      if (!s.img || !s.originalImg) return;
+
+      const rad = -s.angle * Math.PI / 180;
+      const dx = clickX - s.x;
+      const dy = clickY - s.y;
+      const localX = dx * Math.cos(rad) - dy * Math.sin(rad);
+      const localY = dx * Math.sin(rad) + dy * Math.cos(rad);
+
+      const w = s.width;
+      const h = s.height;
+      const currentScaledW = s.width * s.scale;
+      const currentScaledH = s.height * s.scale;
+
+      const imgX = Math.floor((localX + currentScaledW / 2) / s.scale);
+      const imgY = Math.floor((localY + currentScaledH / 2) / s.scale);
+
+      if (imgX < 0 || imgX >= w || imgY < 0 || imgY >= h) return;
+
+      const tempCanvas = document.createElement('canvas');
+      const tempCtx = tempCanvas.getContext('2d');
+      tempCanvas.width = w;
+      tempCanvas.height = h;
+      tempCtx.drawImage(s.img, 0, 0);
+
+      const origCanvas = document.createElement('canvas');
+      const origCtx = origCanvas.getContext('2d');
+      origCanvas.width = w;
+      origCanvas.height = h;
+      origCtx.drawImage(s.originalImg, 0, 0);
+
+      const imgData = tempCtx.getImageData(0, 0, w, h);
+      const origData = origCtx.getImageData(0, 0, w, h);
+      const data = imgData.data;
+      const oData = origData.data;
+
+      const brushRadius = Math.max(5, Math.floor(currentBrushRadius / s.scale));
+
+      for (let py = -brushRadius; py <= brushRadius; py++) {
+        for (let px = -brushRadius; px <= brushRadius; px++) {
+          if (px * px + py * py <= brushRadius * brushRadius) {
+            const tx = imgX + px;
+            const ty = imgY + py;
+            if (tx >= 0 && tx < w && ty >= 0 && ty < h) {
+              const idx = (ty * w + tx) * 4;
+              if (type === 'eraser') {
+                data[idx + 3] = 0; // 擦除變透明
+              } else if (type === 'restore') {
+                data[idx] = oData[idx];
+                data[idx + 1] = oData[idx + 1];
+                data[idx + 2] = oData[idx + 2];
+                data[idx + 3] = oData[idx + 3];
+              }
+            }
+          }
+        }
+      }
+
+      tempCtx.putImageData(imgData, 0, 0);
+      const newImg = new Image();
+      newImg.onload = function() {
+        s.img = newImg;
+        s.imgSrcBlob = tempCanvas.toDataURL('image/png');
+        render();
+      };
+      newImg.src = tempCanvas.toDataURL('image/png');
+    }
+
     function handleCanvasInteraction(e) {
       if (e.touches && e.touches.length > 1) return;
 
       const { x, y } = getCanvasPos(e);
       const hitThreshold = 25;
 
-      if (isSelectSubjectMode && selectedStickerIndex !== -1) {
-        const s = stickers[selectedStickerIndex];
-        if (isPointInsideSticker(x, y, s)) {
-          executeSelectSubject(x, y);
-          return;
-        }
-      }
-
       if (isMagicWandMode && selectedStickerIndex !== -1) {
         const s = stickers[selectedStickerIndex];
         if (isPointInsideSticker(x, y, s)) {
           executeMagicWandEraser(x, y);
+          return;
+        }
+      }
+
+      if (isEraserMode && selectedStickerIndex !== -1) {
+        const s = stickers[selectedStickerIndex];
+        if (isPointInsideSticker(x, y, s)) {
+          saveState();
+          applyBrush(x, y, 'eraser');
+          activeMode = 'painting_eraser';
+          return;
+        }
+      }
+
+      if (isRestoreMode && selectedStickerIndex !== -1) {
+        const s = stickers[selectedStickerIndex];
+        if (isPointInsideSticker(x, y, s)) {
+          saveState();
+          applyBrush(x, y, 'restore');
+          activeMode = 'painting_restore';
           return;
         }
       }
@@ -1387,7 +1462,7 @@
         }
       }
 
-      if (selectedStickerIndex !== -1 && stickers[selectedStickerIndex] && !isMagicWandMode && !isSelectSubjectMode) {
+      if (selectedStickerIndex !== -1 && stickers[selectedStickerIndex] && !isMagicWandMode && !isEraserMode && !isRestoreMode) {
         const s = stickers[selectedStickerIndex];
         const { globalHandles, rotHandle } = getStickerHandleCoords(s);
 
@@ -1418,7 +1493,7 @@
 
       if (hitStickerIdx !== -1) {
         if (selectedStickerIndex === hitStickerIdx) {
-          if (!isMagicWandMode && !isSelectSubjectMode) {
+          if (!isMagicWandMode && !isEraserMode && !isRestoreMode) {
             saveState();
             activeMode = 'sticker_move'; startX = x; startY = y;
           }
@@ -1427,7 +1502,8 @@
           selectedStickerIndex = hitStickerIdx;
           selectedZoneIndex = -1;
           isMagicWandMode = false;
-          isSelectSubjectMode = false;
+          isEraserMode = false;
+          isRestoreMode = false;
           render();
           return;
         }
@@ -1451,7 +1527,8 @@
         selectedZoneIndex = hitIndex;
         selectedStickerIndex = -1;
         isMagicWandMode = false;
-        isSelectSubjectMode = false;
+        isEraserMode = false;
+        isRestoreMode = false;
 
         if (!checkHasImg) {
           globalFileInput.value = '';
@@ -1464,7 +1541,8 @@
       selectedZoneIndex = -1;
       selectedStickerIndex = -1;
       isMagicWandMode = false;
-      isSelectSubjectMode = false;
+      isEraserMode = false;
+      isRestoreMode = false;
       activeMode = null;
       render();
     }
@@ -1542,10 +1620,15 @@
         const targetSize = 350;
         const defaultScale = Math.min(targetSize / img.width, targetSize / img.height);
 
+        const origImg = new Image();
+        origImg.src = blobUrl;
+
         const newSticker = {
           id: Date.now(),
           img: img,
           imgSrcBlob: blobUrl,
+          originalImg: origImg,
+          originalImgSrcBlob: blobUrl,
           x: DESIGN_WIDTH / 2 + (Math.random() * 60 - 30),
           y: DESIGN_HEIGHT / 2 + (Math.random() * 60 - 30),
           scale: defaultScale,
@@ -1558,7 +1641,8 @@
         selectedStickerIndex = stickers.length - 1;
         selectedZoneIndex = -1;
         isMagicWandMode = false;
-        isSelectSubjectMode = false;
+        isEraserMode = false;
+        isRestoreMode = false;
         render();
       };
       img.src = blobUrl;
@@ -1570,6 +1654,15 @@
       if (e.cancelable) e.preventDefault();
 
       const { x, y } = getCanvasPos(e);
+
+      if (activeMode === 'painting_eraser') {
+        applyBrush(x, y, 'eraser');
+        return;
+      }
+      if (activeMode === 'painting_restore') {
+        applyBrush(x, y, 'restore');
+        return;
+      }
 
       if (activeMode === 'move' && selectedZoneIndex !== -1) {
         const z = baseZones[selectedZoneIndex];
@@ -1778,7 +1871,8 @@
         stickers.splice(selectedStickerIndex, 1);
         selectedStickerIndex = -1;
         isMagicWandMode = false;
-        isSelectSubjectMode = false;
+        isEraserMode = false;
+        isRestoreMode = false;
         render();
       }
     }
@@ -1806,7 +1900,8 @@
           selectedZoneIndex = i;
           selectedStickerIndex = -1;
           isMagicWandMode = false;
-          isSelectSubjectMode = false;
+          isEraserMode = false;
+          isRestoreMode = false;
           render();
           return;
         }
@@ -1815,7 +1910,8 @@
       selectedZoneIndex = -1;
       selectedStickerIndex = -1;
       isMagicWandMode = false;
-      isSelectSubjectMode = false;
+      isEraserMode = false;
+      isRestoreMode = false;
       render(true);
 
       canvas.toBlob(function(blob) {
@@ -1875,7 +1971,8 @@
       selectedZoneIndex = -1;
       selectedStickerIndex = -1;
       isMagicWandMode = false;
-      isSelectSubjectMode = false;
+      isEraserMode = false;
+      isRestoreMode = false;
       render(true); 
 
       canvas.toBlob(function(blob) {
@@ -1890,36 +1987,42 @@
         const formData = new FormData();
         
         formData.append('file', safeBlob, fileName + '.jpg');
-        
         formData.append('customer_name', fileName);
         formData.append('reservation_time', visitDate);
         formData.append('file_name', fileName);
         formData.append('visit_date', visitDate);
         formData.append('submitted_at', new Date().toISOString());
 
-        fetch(MAKE_WEBHOOK_URL, {
-          method: 'POST',
-          body: formData
-        })
-        .then(response => {
-          if (response.ok) {
-            document.getElementById('statusTitle').innerText = '🎉 傳送成功！';
-            document.getElementById('statusDesc').innerText = `您的設計已成功送交給店家！預約日期：${visitDate}，請依約前來店鋪製作！`;
-            document.getElementById('statusCloseBtnRow').style.display = 'flex';
-            setTimeout(() => {
-              statusModal.style.display = 'none';
-            }, 3500);
-          } else {
-            throw new Error('Server response failed');
-          }
-        })
-        .catch(error => {
-          console.error(error);
-          document.getElementById('statusTitle').innerText = '❌ 傳送失敗';
-          document.getElementById('statusDesc').innerText = '網路連線異常或伺服器忙碌中，請再試一次或直接聯繫店員。';
-          document.getElementById('statusCloseBtnRow').style.display = 'flex';
-        });
+        function sendWithRetry(retries = 2) {
+          fetch(MAKE_WEBHOOK_URL, {
+            method: 'POST',
+            body: formData
+          })
+          .then(response => {
+            if (response.ok) {
+              document.getElementById('statusTitle').innerText = '🎉 傳送成功！';
+              document.getElementById('statusDesc').innerText = `您的設計已成功送交給店家！預約日期：${visitDate}，請依約前來店鋪製作！`;
+              document.getElementById('statusCloseBtnRow').style.display = 'flex';
+              setTimeout(() => {
+                statusModal.style.display = 'none';
+              }, 3500);
+            } else {
+              throw new Error('Server response failed');
+            }
+          })
+          .catch(error => {
+            if (retries > 0) {
+              setTimeout(() => sendWithRetry(retries - 1), 1500);
+            } else {
+              console.error(error);
+              document.getElementById('statusTitle').innerText = '❌ 傳送失敗';
+              document.getElementById('statusDesc').innerText = '網路連線異常或伺服器忙碌中，請再試一次或直接聯繫店員。';
+              document.getElementById('statusCloseBtnRow').style.display = 'flex';
+            }
+          });
+        }
 
+        sendWithRetry();
         render(false); 
       }, 'image/jpeg', 0.98);
     }
