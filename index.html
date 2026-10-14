@@ -254,7 +254,7 @@
       flex-wrap: wrap;
     }
 
-    .brush-size-control {
+    .slider-control-box {
       display: none;
       align-items: center;
       gap: 10px;
@@ -266,7 +266,7 @@
       color: #5c4033;
     }
 
-    .brush-size-control input[type="range"] {
+    .slider-control-box input[type="range"] {
       flex: 1;
       cursor: pointer;
     }
@@ -384,6 +384,12 @@
       box-shadow: 0 4px 10px rgba(230, 81, 0, 0.3);
     }
     .btn-modal-upload:hover { background: #bf360c; }
+    .btn-modal-upload:disabled {
+      background: #cccccc !important;
+      border-color: #999999 !important;
+      cursor: not-allowed;
+      box-shadow: none !important;
+    }
 
     .btn-modal-close { 
       background: #dfcca6; 
@@ -447,7 +453,15 @@
           <button class="btn btn-restore" id="restoreModeBtn" onclick="toggleRestoreMode()">🖌️ 還原筆刷</button>
         </div>
 
-        <div class="brush-size-control" id="brushSizeBox">
+        <!-- 🪄 魔術棒強度調整滑桿 -->
+        <div class="slider-control-box" id="magicToleranceBox">
+          <span>🎯 魔術棒去背強度 (容許度)：</span>
+          <input type="range" id="magicToleranceSlider" min="10" max="120" value="45" oninput="updateToleranceLabel(this.value)">
+          <span id="magicToleranceValue">45 (中等)</span>
+        </div>
+
+        <!-- 🖌️ 筆刷大小調整滑桿 -->
+        <div class="slider-control-box" id="brushSizeBox">
           <span>🖌️ 筆刷大小：</span>
           <input type="range" id="brushSizeSlider" min="10" max="100" value="30" oninput="updateBrushSizeLabel(this.value)">
           <span id="brushSizeValue">30px</span>
@@ -464,8 +478,8 @@
     <div class="tip-box">
       <b>✂️ 貼紙精修說明：</b> 
       <ul>
-        <li><b>🪄 智慧魔術棒去背：</b>點擊貼紙背景，秒速自動清除相同顏色的周圍背景！</li>
-        <li><b>🧹 橡皮擦 / 🖌️ 還原筆刷：</b>可透過下方滑桿自由調整筆刷粗細，局部塗抹微調。</li>
+        <li><b>🪄 智慧魔術棒去背：</b>點擊貼紙背景即可清除！若去背太多或太少，可調整上方「去背強度」。</li>
+        <li><b>🧹 橡皮擦 / 🖌️ 還原筆刷：</b>可調整筆刷粗細，按住並塗抹貼紙邊緣進行細節精修。</li>
       </ul>
     </div>
   </div>
@@ -497,7 +511,7 @@
       </div>
 
       <div class="modal-btn-row">
-        <button class="btn-modal-upload" onclick="confirmAndUpload()">🚨 確認無誤，送出檔案</button>
+        <button class="btn-modal-upload" id="submitBtn" onclick="confirmAndUpload()">🚨 確認無誤，送出檔案</button>
         <button class="btn-modal-close" onclick="closePreviewModal()">返回修改</button>
       </div>
     </div>
@@ -534,7 +548,10 @@
     const eraserModeBtn = document.getElementById('eraserModeBtn');
     const restoreModeBtn = document.getElementById('restoreModeBtn');
     const brushSizeBox = document.getElementById('brushSizeBox');
+    const magicToleranceBox = document.getElementById('magicToleranceBox');
+    const submitBtn = document.getElementById('submitBtn');
 
+    let isSubmitting = false; // 防止重複送出的狀態旗標
     let previewFinished = false;
     let selectedZoneIndex = -1;       
     let selectedStickerIndex = -1;    
@@ -542,6 +559,7 @@
     let isEraserMode = false;
     let isRestoreMode = false;
     let currentBrushRadius = 30;
+    let currentMagicTolerance = 45;
 
     const LINE_COLOR = '#E0E0E0';
 
@@ -671,6 +689,14 @@
       document.getElementById('brushSizeValue').innerText = val + 'px';
     }
 
+    function updateToleranceLabel(val) {
+      currentMagicTolerance = parseInt(val, 10);
+      let tag = ' (中等)';
+      if (val < 30) tag = ' (弱 - 精準微調)';
+      else if (val > 70) tag = ' (強 - 大面積清除)';
+      document.getElementById('magicToleranceValue').innerText = val + tag;
+    }
+
     function changeSelectedZoneBgColor(color) {
       if (selectedZoneIndex !== -1) {
         const targetZone = baseZones[selectedZoneIndex];
@@ -708,15 +734,19 @@
       } else if (selectedStickerIndex !== -1) {
         if (isMagicWandMode) {
           label.innerHTML = `🪄 <b>魔術棒模式：</b>點擊要擦掉的背景色彩！`;
+          magicToleranceBox.style.display = 'flex';
           brushSizeBox.style.display = 'none';
         } else if (isEraserMode) {
           label.innerHTML = `🧹 <b>手動橡皮擦模式：</b>按住並塗抹要擦掉的背景！`;
+          magicToleranceBox.style.display = 'none';
           brushSizeBox.style.display = 'flex';
         } else if (isRestoreMode) {
           label.innerHTML = `🖌️ <b>還原筆刷模式：</b>按住並塗抹要長回來的區域！`;
+          magicToleranceBox.style.display = 'none';
           brushSizeBox.style.display = 'flex';
         } else {
           label.innerHTML = `🎨 已選中貼紙 (可使用下方工具精修)`;
+          magicToleranceBox.style.display = 'none';
           brushSizeBox.style.display = 'none';
         }
         picker.disabled = true;
@@ -727,6 +757,7 @@
         picker.disabled = true;
         trashBtn.disabled = true;
         stickerTools.style.display = 'none';
+        magicToleranceBox.style.display = 'none';
         brushSizeBox.style.display = 'none';
         isMagicWandMode = false;
         isEraserMode = false;
@@ -1216,7 +1247,6 @@
       render();
     }
 
-    // 🪄 智慧魔術棒點擊填滿擦除
     function executeMagicWandEraser(clickX, clickY) {
       if (selectedStickerIndex === -1) return;
       const s = stickers[selectedStickerIndex];
@@ -1260,7 +1290,8 @@
       const visited = new Uint8Array(w * h);
       const queue = [imgX, imgY];
       visited[imgY * w + imgX] = 1;
-      const tolerance = 45;
+
+      const tolerance = currentMagicTolerance;
 
       function colorDist(idx) {
         const rDiff = data[idx] - targetR;
@@ -1306,7 +1337,6 @@
       newImg.src = tempCanvas.toDataURL('image/png');
     }
 
-    // 🖌️ 手動筆刷塗抹（動態大小）
     function applyBrush(clickX, clickY, type) {
       if (selectedStickerIndex === -1) return;
       const s = stickers[selectedStickerIndex];
@@ -1355,7 +1385,7 @@
             if (tx >= 0 && tx < w && ty >= 0 && ty < h) {
               const idx = (ty * w + tx) * 4;
               if (type === 'eraser') {
-                data[idx + 3] = 0; // 擦除變透明
+                data[idx + 3] = 0; 
               } else if (type === 'restore') {
                 data[idx] = oData[idx];
                 data[idx + 1] = oData[idx + 1];
@@ -1923,6 +1953,7 @@
     }
 
     function closePreviewModal() {
+      if (isSubmitting) return; // 傳送中不允許關閉
       document.getElementById('previewModal').style.display = 'none';
     }
 
@@ -1931,12 +1962,16 @@
     }
 
     function checkOutsideClose(event, modalId) {
+      if (isSubmitting) return; // 傳送中禁止點背景關閉
       if (event.target.id === modalId) {
         document.getElementById(modalId).style.display = 'none';
       }
     }
 
+    // 🚨 修正防護：單次傳送＋按鈕鎖定
     function confirmAndUpload() {
+      if (isSubmitting) return; // 已在傳送中則直接阻擋
+
       const fileNameInput = document.getElementById('inputFileName');
       const visitDateInput = document.getElementById('inputVisitDate');
 
@@ -1955,12 +1990,17 @@
         return;
       }
 
-      closePreviewModal();
-
       if (!MAKE_WEBHOOK_URL) {
         alert('尚未設定 Make Webhook 網址！');
         return;
       }
+
+      // 鎖定狀態與按鈕
+      isSubmitting = true;
+      submitBtn.disabled = true;
+      submitBtn.innerText = '⏳ 傳送中...';
+
+      closePreviewModal();
 
       const statusModal = document.getElementById('statusModal');
       document.getElementById('statusTitle').innerText = '📤 正在傳送至店家...';
@@ -1979,6 +2019,9 @@
         if (!blob) {
           alert('圖片生成失敗，請再試一次！');
           statusModal.style.display = 'none';
+          isSubmitting = false;
+          submitBtn.disabled = false;
+          submitBtn.innerText = '🚨 確認無誤，送出檔案';
           render(false);
           return;
         }
@@ -1993,37 +2036,37 @@
         formData.append('visit_date', visitDate);
         formData.append('submitted_at', new Date().toISOString());
 
-        function sendWithRetry(retries = 2) {
-          fetch(MAKE_WEBHOOK_URL, {
-            method: 'POST',
-            body: formData
-          })
-          .then(response => {
-            if (response.ok) {
-              document.getElementById('statusTitle').innerText = '🎉 傳送成功！';
-              document.getElementById('statusDesc').innerText = `您的設計已成功送交給店家！預約日期：${visitDate}，請依約前來店鋪製作！`;
-              document.getElementById('statusCloseBtnRow').style.display = 'flex';
-              setTimeout(() => {
-                statusModal.style.display = 'none';
-              }, 3500);
-            } else {
-              throw new Error('Server response failed');
-            }
-          })
-          .catch(error => {
-            if (retries > 0) {
-              setTimeout(() => sendWithRetry(retries - 1), 1500);
-            } else {
-              console.error(error);
-              document.getElementById('statusTitle').innerText = '❌ 傳送失敗';
-              document.getElementById('statusDesc').innerText = '網路連線異常或伺服器忙碌中，請再試一次或直接聯繫店員。';
-              document.getElementById('statusCloseBtnRow').style.display = 'flex';
-            }
-          });
-        }
+        // 只發送一次，不使用無窮重試
+        fetch(MAKE_WEBHOOK_URL, {
+          method: 'POST',
+          body: formData
+        })
+        .then(response => {
+          if (response.ok) {
+            document.getElementById('statusTitle').innerText = '🎉 傳送成功！';
+            document.getElementById('statusDesc').innerText = `您的設計已成功送交給店家！預約日期：${visitDate}，請依約前來店鋪製作！`;
+            document.getElementById('statusCloseBtnRow').style.display = 'flex';
+            setTimeout(() => {
+              statusModal.style.display = 'none';
+            }, 3500);
+          } else {
+            throw new Error('伺服器傳送失敗');
+          }
+        })
+        .catch(error => {
+          console.error(error);
+          document.getElementById('statusTitle').innerText = '❌ 傳送失敗';
+          document.getElementById('statusDesc').innerText = '網路連線異常，請重新點擊「送出檔案」再試一次。';
+          document.getElementById('statusCloseBtnRow').style.display = 'flex';
+        })
+        .finally(() => {
+          // 解鎖按鈕
+          isSubmitting = false;
+          submitBtn.disabled = false;
+          submitBtn.innerText = '🚨 確認無誤，送出檔案';
+          render(false); 
+        });
 
-        sendWithRetry();
-        render(false); 
       }, 'image/jpeg', 0.98);
     }
 
